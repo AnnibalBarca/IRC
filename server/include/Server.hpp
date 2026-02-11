@@ -13,8 +13,22 @@
 class Server
 {
 private:
-    int Port;
-    int SocketFd; //descripteur serveyr
-    static bool Signal; //signal ou pas
-    std::vector<Client> clients;
-}
+    int _port;
+    int _socketFd; //descripteur serveyr
+    static bool _signal; //signal ou pas
+    std::vector<Client> _clients;
+    std::vector<struct pollfd> _pollFds;
+public:
+    Server();
+
+    void serverInit();
+    void serverSocket(); // server socket creation
+    void newClient(); // accept new client
+    void newData(); // accept new data
+
+    static void signalHandler(int sigNum);
+
+    void closeFds(); 
+    void clearClients(int fd);
+};
+
