@@ -4,11 +4,16 @@ Server::Server() : _socketFd(-1)
 {}
 
 void Server::serverInit()
-{}
+{
+    _port == 42;
+    serverSocket();
+    std::cout << "Server <" << _socketFd << "> Disconnected" << std::endl;
+    close(_socketFd);
+}
 
 void Server::serverSocket()
 {
-    
+
 }
 void Server::newClient(){}
 
