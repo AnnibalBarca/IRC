@@ -2,19 +2,21 @@
 #define CLIENT_HPP
 
 #include <iostream>
+#include <string>
 
 class Client
 {
 private:
-    int _clientFd;
+    int         _clientFd;
     std::string _clientIp;
-public:
-    Client(); // const par def . en cpp pas besoin d'aure chose
-    int getFd();
 
-    void setFd();
-    void setIp(std::string clientIp);
-    
-}
+public:
+    Client();
+    int         getFd() const;
+    std::string getIp() const;
+
+    void setFd(int fd);
+    void setIp(const std::string& ip);
+};
 
 #endif

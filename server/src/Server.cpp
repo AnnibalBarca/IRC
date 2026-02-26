@@ -1,49 +1,155 @@
 #include "Server.hpp"
 
-Server::Server() : _socketFd(-1)
+bool Server::_signal = false;
+
+Server::Server() : _port(0)
 {}
 
-void Server::serverInit()
+Server::~Server()
 {
-    _port == 42;
+    closeFds();
+}
+
+void    Server::serverInit(int port, const std::string& password)
+{
+    _port     = port;
+    _password = password;
+    signal(SIGINT,  signalHandler);
+    signal(SIGTERM, signalHandler);
     serverSocket();
-    std::cout << "Server <" << _socketFd << "> Disconnected" << std::endl;
-    close(_socketFd);
+    std::cout << "Server listening on port " << _port
+              << " (fd=" << _socket.getFd() << ")" << std::endl;
+    run();
+    closeFds();
+    std::cout << "Server shut down." << std::endl;
 }
 
-void Server::serverSocket()
+void    Server::serverSocket()
 {
-
+    _socket.create();
+    _socket.setReuseAddr();
+    _socket.bindTo(_port);
+    _socket.startListening();
+    _socket.setNonBlocking();
+    struct pollfd pfd;
+    pfd.fd      = _socket.getFd();
+    pfd.events  = POLLIN;
+    pfd.revents = 0;
+    _pollFds.push_back(pfd);
 }
-void Server::newClient(){}
 
-
-// accept new client
-void newData(); // accept new data
-
-void Server::signalHandler(int sigNum)
+void    Server::run()
 {
-    std::cout << "Signal received!" << std::endl;
+    while (!_signal)
+    {
+        if (_pollFds.empty())
+            break;
+        int ret = poll(&_pollFds[0], (nfds_t)_pollFds.size(), -1);
+        if (ret < 0)
+        {
+            if (_signal) break;
+            throw std::runtime_error(std::string("poll() failed: ") + strerror(errno));
+        }
+        for (size_t i = 0; i < _pollFds.size(); i++)
+        {
+            if (_pollFds[i].revents == 0)
+                continue;
+            if (_pollFds[i].fd == _socket.getFd() && (_pollFds[i].revents & POLLIN))
+            {
+                newClient();
+                break;
+            }
+            int fd = _pollFds[i].fd;
+            if (_pollFds[i].revents & (POLLHUP | POLLERR))
+            {
+                std::cout << "Client <" << fd << "> disconnected." << std::endl;
+                clearClients(fd);
+                close(fd);
+                break;
+            }
+            if (_pollFds[i].revents & POLLIN)
+            {
+                receiveData(fd);
+                break;
+            }
+        }
+    }
+}
+
+void    Server::newClient()
+{
+    struct sockaddr_in  client_addr;
+    socklen_t           len = sizeof(client_addr);
+    int client_fd = accept(_socket.getFd(), (struct sockaddr*)&client_addr, &len);
+    if (client_fd < 0)
+        return;
+    if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        close(client_fd);
+        return;
+    }
+    struct pollfd pfd;
+    pfd.fd      = client_fd;
+    pfd.events  = POLLIN;
+    pfd.revents = 0;
+    _pollFds.push_back(pfd);
+    Client client;
+    client.setFd(client_fd);
+    client.setIp(inet_ntoa(client_addr.sin_addr));
+    _clients.push_back(client);
+    std::cout << "Client <" << client_fd << "> connected from "
+              << inet_ntoa(client_addr.sin_addr) << std::endl;
+}
+
+void    Server::receiveData(int fd)
+{
+    char    buf[512];
+    ssize_t bytes = recv(fd, buf, sizeof(buf) - 1, 0);
+    if (bytes <= 0)
+    {
+        if (bytes == 0)
+            std::cout << "Client <" << fd << "> disconnected." << std::endl;
+        else
+            std::cerr << "Client <" << fd << "> recv error: " << strerror(errno) << std::endl;
+        clearClients(fd);
+        close(fd);
+        return;
+    }
+    buf[bytes] = '\0';
+    std::cout << "Client <" << fd << "> sent: " << buf;
+}
+
+void    Server::signalHandler(int sigNum)
+{
+    (void)sigNum;
+    std::cout << "\nSignal received – shutting down." << std::endl;
     _signal = true;
 }
 
-
-void closeFds()
+void    Server::closeFds()
 {
+    for (size_t i = 0; i < _clients.size(); i++)
+        close(_clients[i].getFd());
+    _clients.clear();
+    _pollFds.clear();
+    _socket.closeSocket();
+}
 
-} 
-
-void Server::clearClients(int fd)
+void    Server::clearClients(int fd)
 {
-	for(size_t i = 0; i < _pollFds.size(); i++)
+    for (size_t i = 0; i < _pollFds.size(); i++)
     {
-		if (_pollFds[i].fd == fd)
-			{_pollFds.erase(_pollFds.begin() + i); break;}
-	}
-	for(size_t i = 0; i < _clients.size(); i++)
+        if (_pollFds[i].fd == fd)
+            { _pollFds.erase(_pollFds.begin() + i); break; }
+    }
+    for (size_t i = 0; i < _clients.size(); i++)
     {
-		if (_clients[i].getFd() == fd)
-			{_clients.erase(_clients.begin() + i); break;}
-	}
+        if (_clients[i].getFd() == fd)
+            { _clients.erase(_clients.begin() + i); break; }
+    }
+}
 
+const std::string&  Server::getPassword() const
+{
+    return _password;
 }
