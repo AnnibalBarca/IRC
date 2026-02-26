@@ -54,6 +54,9 @@ public:
     void    cmdUser(const std::string& args, int fd);
     void    cmdJoin(const std::string& args, int fd);
 
+    Client* getClient(int fd);
+    Client* getClientWithNick(const std::string& Nick);
+
 
 
     const std::string&  getPassword() const;

@@ -179,19 +179,39 @@ const std::string&  Server::getPassword() const
     return _password;
 }
 
-void    Server::parseCommands(std::string cmd, int fd)
+void    Server::parseCommands(const std::string& cmd, int fd)
 {
     if (cmd.empty())
-        throw (std::invalid_argument("Empty command"));
+        return;
+
+    std::istringstream  iss(cmd);
+    std::string         command;
+    std::string         args;
+
+    iss >> command;
+    std::getline(iss, args);
+    if (!args.empty() && args[0] == ' ')
+        args.erase(0, 1);
+
+    for (size_t i = 0; i < command.size(); i++)
+        command[i] = std::toupper(command[i]);
+
+    if      (command == "PASS")    cmdPass(args, fd);
+    else if (command == "NICK")    cmdNick(args, fd);
+    else if (command == "USER")    cmdUser(args, fd);
+    else if (command == "JOIN")    cmdJoin(args, fd);
+    else if (command == "PRIVMSG") cmdPrivmsg(args, fd);
+    else if (command == "KICK")    cmdKick(args, fd);
+    else if (command == "INVITE")  cmdInvite(args, fd);
+    else if (command == "TOPIC")   cmdTopic(args, fd);
+    else if (command == "MODE")    cmdMode(args, fd);
+    else if (command == "PART")    cmdPart(args, fd);
+    else if (command == "QUIT")    cmdQuit(args, fd);
     else
     {
-        switch:
-        {
-            case "kick"
-                kick(cmd);
-        }
+        //ajouter la verif si un client est enregister !!!
+        //seulemet dand ce cas envoyer
+        std::string err = "421 " + command + " :Unknown command\r\n";
+        send(fd, err.c_str(), err.size(), 0);
     }
-    else
-        throw (std::invalid_argument("Wrong command"));
-    return;
 }
