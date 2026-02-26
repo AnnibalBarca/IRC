@@ -1,14 +1,24 @@
 #include "Client.hpp"
 
-Client::Client(){}; // const par def . en cpp pas besoin d'aure chose
+Client::Client() : _clientFd(-1)
+{}
 
-int Client::getFd()
+int Client::getFd() const
 {
     return _clientFd;
 }
 
-void setFd()
-{}
+std::string Client::getIp() const
+{
+    return _clientIp;
+}
 
-void setIp(std::string clientIp)
-{}
+void Client::setFd(int fd)
+{
+    _clientFd = fd;
+}
+
+void Client::setIp(const std::string& ip)
+{
+    _clientIp = ip;
+}
