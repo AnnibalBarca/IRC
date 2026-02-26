@@ -73,9 +73,10 @@ bool Client::isConnected(int fd)
 }
 
 void Client::addChan(Channel *chan)		{ this->chans.push_back(chan); }
+
 void Client::removeChan(Channel *chan)
 {
-	for (auto it = this->chans.begin(); it != this->chans.end(); ++it)
+	for (std::vector<Channel *>::iterator it = this->chans.begin(); it != this->chans.end(); ++it)
 	{
 		if (*it == chan) { this->chans.erase(it); break; }
 	}
@@ -86,16 +87,16 @@ void Client::disconnect()
 	std::vector<Client *> to_notify;
 	std::vector<Client *> notified;
 
-	for (auto it = this->chans.begin(); it != this->chans.end(); ++it)
+	for (std::vector<Channel *>::iterator it = this->chans.begin(); it != this->chans.end(); ++it)
 	{
-		for (auto c = (*it)->getClients().begin(); c != (*it)->getClients().end(); ++c)
+		for (std::vector<Client>::iterator c = (*it)->getClients().begin(); c != (*it)->getClients().end(); ++c)
 			if (&(*c) != this)
 				to_notify.push_back(&(*c));
 		(*it)->removeClient(*this);
 		(*it)->removeOp(*this);
 	}
 	std::string quit_msg = ":" + this->nick + "!" + this->user + "@" + this->host + " QUIT :Leaving\r\n";
-	for (auto it = to_notify.begin(); it != to_notify.end(); ++it)
+	for (std::vector<Client *>::iterator it = to_notify.begin(); it != to_notify.end(); ++it)
 	{
 		if (std::find(notified.begin(), notified.end(), *it) == notified.end())
 		{
