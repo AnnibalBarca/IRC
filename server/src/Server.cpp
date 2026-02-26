@@ -116,7 +116,32 @@ void    Server::receiveData(int fd)
         return;
     }
     buf[bytes] = '\0';
-    std::cout << "Client <" << fd << "> sent: " << buf;
+    for (size_t i = 0; i < _clients.size(); i++)
+    {
+        if (_clients[i].getFd() != fd)
+            continue;
+        _clients[i].appendToReadBuf(std::string(buf, bytes));
+        std::string& rbuf = _clients[i].getReadBuf();
+        size_t pos;
+        while ((pos = rbuf.find('\n')) != std::string::npos)
+        {
+            std::string cmd = rbuf.substr(0, pos);
+            rbuf.erase(0, pos + 1);
+            if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
+                cmd.erase(cmd.size() - 1);
+            if (cmd.empty())
+                continue;
+            try
+            {
+                parseCommands(cmd, fd);
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "Parse error: " << e.what() << std::endl;
+            }
+        }
+        break;
+    }
 }
 
 void    Server::signalHandler(int sigNum)
@@ -152,4 +177,20 @@ void    Server::clearClients(int fd)
 const std::string&  Server::getPassword() const
 {
     return _password;
+}
+
+void    Server::parseCommands(char *buf)
+{
+    if (buf.empty())
+        throw (std::invalid_argument("Empty command"));
+    else
+    {
+        try()
+        {
+            kick(buff)
+        }
+    }
+    else
+        throw (std::invalid_argument("Wrong command"));
+    return;
 }

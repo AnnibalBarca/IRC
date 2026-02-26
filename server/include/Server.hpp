@@ -44,6 +44,8 @@ public:
     void    closeFds();
     void    clearClients(int fd);
 
+    void    parseCommands(char *buf);
+
     const std::string&  getPassword() const;
 };
 

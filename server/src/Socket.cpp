@@ -1,7 +1,4 @@
 #include "Socket.hpp"
-#include <stdexcept>
-#include <cerrno>
-#include <cstring>
 
 Socket::Socket() : _fd(-1)
 {
