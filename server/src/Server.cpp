@@ -120,8 +120,8 @@ void    Server::receiveData(int fd)
     {
         if (_clients[i].getFd() != fd)
             continue;
-        _clients[i].appendToReadBuf(std::string(buf, bytes));
-        std::string& rbuf = _clients[i].getReadBuf();
+        _clients[i].addBuf(std::string(buf, bytes));
+        std::string& rbuf = _clients[i].getBuf();
         size_t pos;
         while ((pos = rbuf.find('\n')) != std::string::npos)
         {
@@ -179,15 +179,16 @@ const std::string&  Server::getPassword() const
     return _password;
 }
 
-void    Server::parseCommands(char *buf)
+void    Server::parseCommands(std::string cmd, int fd)
 {
-    if (buf.empty())
+    if (cmd.empty())
         throw (std::invalid_argument("Empty command"));
     else
     {
-        try()
+        switch:
         {
-            kick(buff)
+            case "kick"
+                kick(cmd);
         }
     }
     else

@@ -44,7 +44,17 @@ public:
     void    closeFds();
     void    clearClients(int fd);
 
-    void    parseCommands(char *buf);
+    void    parseCommands(const std::string& cmd, int fd);
+    void    cmdKick(const std::string& args, int fd);
+    void    cmdTopic(const std::string& args, int fd);
+    void    cmdInvite(const std::string& args, int fd);
+    void    cmdMode(const std::string& args, int fd);
+    void    cmdPass(const std::string& args, int fd);
+    void    cmdNick(const std::string& args, int fd);
+    void    cmdUser(const std::string& args, int fd);
+    void    cmdJoin(const std::string& args, int fd);
+
+
 
     const std::string&  getPassword() const;
 };
