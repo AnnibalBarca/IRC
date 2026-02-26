@@ -192,21 +192,30 @@ void    Server::parseCommands(const std::string& cmd, int fd)
     std::getline(iss, args);
     if (!args.empty() && args[0] == ' ')
         args.erase(0, 1);
-
     for (size_t i = 0; i < command.size(); i++)
         command[i] = std::toupper(command[i]);
-
-    if      (command == "PASS")    cmdPass(args, fd);
-    else if (command == "NICK")    cmdNick(args, fd);
-    else if (command == "USER")    cmdUser(args, fd);
-    else if (command == "JOIN")    cmdJoin(args, fd);
-    else if (command == "PRIVMSG") cmdPrivmsg(args, fd);
-    else if (command == "KICK")    cmdKick(args, fd);
-    else if (command == "INVITE")  cmdInvite(args, fd);
-    else if (command == "TOPIC")   cmdTopic(args, fd);
-    else if (command == "MODE")    cmdMode(args, fd);
-    else if (command == "PART")    cmdPart(args, fd);
-    else if (command == "QUIT")    cmdQuit(args, fd);
+    if (command == "PASS")    
+        cmdPass(args, fd);
+    else if (command == "NICK")    
+        cmdNick(args, fd);
+    else if (command == "USER")    
+        cmdUser(args, fd);
+    else if (command == "JOIN")    
+        cmdJoin(args, fd);
+    else if (command == "PRIVMSG") 
+        cmdPrivmsg(args, fd);
+    else if (command == "KICK")    
+        cmdKick(args, fd);
+    else if (command == "INVITE")  
+        cmdInvite(args, fd);
+    else if (command == "TOPIC")   
+        cmdTopic(args, fd);
+    else if (command == "MODE")    
+        cmdMode(args, fd);
+    else if (command == "PART")    
+        cmdPart(args, fd);
+    else if (command == "QUIT")    
+        cmdQuit(args, fd);
     else
     {
         //ajouter la verif si un client est enregister !!!
@@ -215,3 +224,18 @@ void    Server::parseCommands(const std::string& cmd, int fd)
         send(fd, err.c_str(), err.size(), 0);
     }
 }
+void    Server::cmdKick(const std::string& args, int fd)
+{
+    std::istringstream  iss(args);
+    std::stream channel;
+    std
+
+    
+}
+    void    cmdTopic(const std::string& args, int fd);
+    void    cmdInvite(const std::string& args, int fd);
+    void    cmdMode(const std::string& args, int fd);
+    void    cmdPass(const std::string& args, int fd);
+    void    cmdNick(const std::string& args, int fd);
+    void    cmdUser(const std::string& args, int fd);
+    void    cmdJoin(const std::string& args, int fd);
