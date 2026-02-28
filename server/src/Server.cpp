@@ -261,18 +261,40 @@ void Server::cmdKick(const std::string &args, int fd)
 {
     if (args.empty())
         return;
-    Client *client = getClient(fd);
     std::istringstream iss(args);
-    std::string kick;
-    iss >> kick;
-    if (!(iss >> kick) || kick.empty())
+    std::string name;
+    Client *client = getClient(fd);
+    if (!(iss >> name) || name.empty())
     {
         std::string nick = client->getNick().empty() ? "*" : client->getNick();
         std::string err = "461 " + nick + " PASS" + ERR_NEEDMOREPARAMS;
         send(fd, err.c_str(), err.size(), 0);
         return;
     }
+    Channel *channel = getChannel(name);
+    if (!channel)
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        std::string err = "403 " + nick + " " + name + ERR_NOSUCHCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!client->isOperator())
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        std::string err = "482 " + nick + " " + name + ERR_CHANOPRIVSNEEDED;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if ()
+    
+    std::istringstream iss(args);
+    std::string kick;
+    iss >> kick;
+    
     if (kick != )
+
+    channel.getName
     while ()
 
 }
@@ -299,6 +321,16 @@ Client* Server::getClient(int fd)
     {
         if (_clients[i].getFd() == fd)
             return &_clients[i];
+    }
+    return NULL;
+}
+
+Channel* Server::getChannel(std::string name)
+{
+    for (size_t i = 0; i < _channel.size(); i++)
+    {
+        if (_channel[i].getName() == name)
+            return &_channel[i];
     }
     return NULL;
 }

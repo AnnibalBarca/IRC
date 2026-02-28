@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include "Socket.hpp"
 #include "Client.hpp"
+#include "Errors.hpp"
 #include <map>
 #include <sstream>
 
@@ -29,6 +30,7 @@ private:
     static bool                 _signal;
     std::vector<Client>         _clients;
     std::vector<struct pollfd>  _pollFds;
+    std::vector<Channel>        _channel;
 
 public:
     Server();
@@ -58,12 +60,14 @@ public:
 
     Client* getClient(int fd);
     Client* getClientWithNick(const std::string& Nick);
+    Channel* getChannel(std::string name);
 
     typedef void (*CmdHandler)(const std::string&, int);
 
 
 
-    const std::string&  getPassword() const;
+    const std::string&  getPass() const;
+    void setPass(std::string &password);
 };
 
 #endif
