@@ -44,6 +44,8 @@ void		Client::addBuf(std::string buf)		{ this->buf += buf; }
 
 bool Client::isOperator()				{ return this->_operator; }
 
+void Client::setOperator()              { _operator = true; }
+
 std::string	Client::getBuf()					{ return this->buf; }
 
 std::vector<Channel *> &Client::getChans()		{ return this->chans; }

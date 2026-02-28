@@ -56,6 +56,7 @@ public:
 	void sendReply(std::string code, std::string msg);
 	void disconnect();
 	bool isOperator();
+	void setOperator();
 };
 
 #endif
