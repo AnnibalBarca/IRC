@@ -1,119 +1,136 @@
 #include "Channel.hpp"
+#include <algorithm>
+
+Channel::Channel() : name(""), topic(""), passwd(""), limit(0) {}
 
 Channel::Channel(std::string name, Client &owner)
-	: name(name), topic("No topic is set"), passwd(""), limit(0)
+    : name(name), topic(""), passwd(""), limit(0)
 {
-	this->ops.push_back(owner);
-	this->clients.push_back(owner);
-	this->modes.push_back('t');
+    this->clientFds.push_back(owner.getFd());
+    this->opFds.push_back(owner.getFd());
+    this->modes.push_back('t');
 }
 Channel::~Channel() {}
 
-std::string			Channel::getName()		{ return this->name; }
-
-std::string			Channel::getTopic()		{ return this->topic; }
-
-void				Channel::setTopic(std::string topic)	{ this->topic = topic; }
-
-std::string			Channel::getPasswd()	{ return this->passwd; }
-
-void				Channel::setPasswd(std::string passwd)	{ this->passwd = passwd; }
-
-size_t				Channel::getLimit()		{ return this->limit; }
-
-void				Channel::setLimit(size_t limit)			{ this->limit = limit; }
-
-bool				Channel::getTopicIsTrue()				{ return this->topicIsTrue; }
-
-std::vector<Client>	&Channel::getClients()	{ return this->clients; }
-
-std::vector<Client>	&Channel::getOps()		{ return this->ops; }
-
-bool Channel::isOp(Client &op)
-{
-	for (std::vector<Client>::iterator it = ops.begin(); it != ops.end(); ++it)
-		if (*it == op) return true;
-	return false;
-}
-
-void Channel::addOp(Client &op)
-{
-	if (!isOp(op))
-		this->ops.push_back(op);
-}
-
-void Channel::removeOp(Client &op)
-{
-	for (std::vector<Client>::iterator it = ops.begin(); it != ops.end(); ++it)
-		if (*it == op) { ops.erase(it); break; }
-}
+std::string Channel::getName()                          { return this->name; }
+std::string Channel::getTopic()                         { return this->topic; }
+void        Channel::setTopic(std::string topic)        { this->topic = topic; }
+std::string Channel::getPasswd()                        { return this->passwd; }
+void        Channel::setPasswd(std::string passwd)      { this->passwd = passwd; }
+size_t      Channel::getLimit()                         { return this->limit; }
+void        Channel::setLimit(size_t limit)             { this->limit = limit; }
+std::vector<int> &Channel::getClientFds()               { return this->clientFds; }
+std::vector<int> &Channel::getOpFds()                   { return this->opFds; }
+bool        Channel::isEmpty()                          { return this->clientFds.empty(); }
 
 bool Channel::isClient(Client &c)
 {
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-		if (*it == c) return true;
-	return false;
+    for (size_t i = 0; i < clientFds.size(); i++)
+        if (clientFds[i] == c.getFd()) return true;
+    return false;
 }
 
 void Channel::addClient(Client &c)
 {
-	if (clients.size() < limit || limit == 0)
-		clients.push_back(c);
-	else
-		c.sendReply("471", "Channel is full");
+    if (limit > 0 && clientFds.size() >= limit)
+    {
+        c.sendReply("471", c.getNick() + " " + this->name + " :Cannot join channel (+l)");
+        return;
+    }
+    if (!isClient(c))
+        clientFds.push_back(c.getFd());
 }
 
 void Channel::removeClient(Client &c)
 {
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-		if (*it == c) { clients.erase(it); break; }
+    for (std::vector<int>::iterator it = clientFds.begin(); it != clientFds.end(); ++it)
+        if (*it == c.getFd()) { clientFds.erase(it); break; }
 }
 
-void Channel::broadcastMsg(Client &c, std::string msg)
+bool Channel::isOp(Client &op)
 {
-	std::string prefix = ":" + c.getNick() + "!" + c.getUser() + "@" + c.getHost();
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-	{
-		if (*it == c) continue;
-		it->forward(prefix + msg + "\r\n");
-	}
+    for (size_t i = 0; i < opFds.size(); i++)
+        if (opFds[i] == op.getFd()) return true;
+    return false;
 }
 
-void Channel::broadcast(Client &c, std::string msg)
+void Channel::addOp(Client &op)
 {
-	std::string prefix = ":" + c.getNick() + "!" + c.getUser() + "@" + c.getHost();
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-		it->forward(prefix + msg + "\r\n");
+    if (!isOp(op))
+        opFds.push_back(op.getFd());
+}
+
+void Channel::removeOp(Client &op)
+{
+    for (std::vector<int>::iterator it = opFds.begin(); it != opFds.end(); ++it)
+        if (*it == op.getFd()) { opFds.erase(it); break; }
+}
+
+bool Channel::isInvited(Client &c)
+{
+    for (size_t i = 0; i < invitedFds.size(); i++)
+        if (invitedFds[i] == c.getFd()) return true;
+    return false;
+}
+
+void Channel::addInvite(Client &c)
+{
+    if (!isInvited(c))
+        invitedFds.push_back(c.getFd());
+}
+
+void Channel::removeInvite(Client &c)
+{
+    for (std::vector<int>::iterator it = invitedFds.begin(); it != invitedFds.end(); ++it)
+        if (*it == c.getFd()) { invitedFds.erase(it); break; }
+}
+
+// Broadcast à tous sauf l'émetteur
+void Channel::broadcastMsg(Client &sender, const std::string &msg, std::vector<Client> &allClients)
+{
+    std::string full = ":" + sender.getNick() + "!" + sender.getUser() + "@" + sender.getHost() + msg + "\r\n";
+    for (size_t i = 0; i < clientFds.size(); i++)
+    {
+        if (clientFds[i] == sender.getFd()) continue;
+        for (size_t j = 0; j < allClients.size(); j++)
+            if (allClients[j].getFd() == clientFds[i])
+                allClients[j].forward(full);
+    }
+}
+
+// Broadcast à tout le monde y compris l'émetteur
+void Channel::broadcast(Client &sender, const std::string &msg, std::vector<Client> &allClients)
+{
+    std::string full = ":" + sender.getNick() + "!" + sender.getUser() + "@" + sender.getHost() + msg + "\r\n";
+    for (size_t i = 0; i < clientFds.size(); i++)
+        for (size_t j = 0; j < allClients.size(); j++)
+            if (allClients[j].getFd() == clientFds[i])
+                allClients[j].forward(full);
 }
 
 bool Channel::isMode(char mode)
 {
-	for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
-		if (*it == mode) return true;
-	return false;
+    for (size_t i = 0; i < modes.size(); i++)
+        if (modes[i] == mode) return true;
+    return false;
 }
 
-void Channel::addMode(char mode)	{ this->modes.push_back(mode); }
+void Channel::addMode(char mode)
+{
+    if (!isMode(mode))
+        modes.push_back(mode);
+}
 
 void Channel::removeMode(char mode)
 {
-	for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
-		if (*it == mode) { modes.erase(it); break; }
+    for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
+        if (*it == mode) { modes.erase(it); break; }
 }
 
 std::string Channel::getModes()
 {
-	std::string result;
-	for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
-	{
-		result += *it;
-		result += " ";
-	}
-	return result;
-}
-
-void Channel::ChannelIsTrue(char mode)
-{
-	for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
-		if (*it == mode) return;
+    std::string result = "+";
+    for (size_t i = 0; i < modes.size(); i++)
+        result += modes[i];
+    return result;
 }

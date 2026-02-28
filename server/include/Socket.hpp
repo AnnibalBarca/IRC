@@ -1,5 +1,4 @@
-#ifndef SOCKET_HPP
-#define SOCKET_HPP
+#pragma once
 
 #include <sys/socket.h>  //-> socket(), setsockopt(), bind(), listen(), accept()
 #include <netinet/in.h>  //-> sockaddr_in, INADDR_ANY, htons()
@@ -13,23 +12,21 @@
 class Socket
 {
 private:
-    int                 _fd;    
-    struct sockaddr_in  _addr;  
+    int                 _fd;
+    struct sockaddr_in  _addr;
 
 public:
     Socket();
     ~Socket();
 
-    void    create();                       
-    void    setReuseAddr();                 
-    void    bindTo(int port);        
-    void    startListening();                
-    void    setNonBlocking();              
+    void    create();
+    void    setReuseAddr();
+    void    bindTo(int port);
+    void    startListening();
+    void    setNonBlocking();
 
     int     getFd()   const;
     const struct sockaddr_in& getAddr() const;
 
-    void    closeSocket();                   
+    void    closeSocket();
 };
-
-#endif
