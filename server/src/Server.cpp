@@ -200,7 +200,7 @@ void Server::parseCommands(const std::string &cmd, int fd)
         args.erase(0, 1);
     for (size_t i = 0; i < command.size(); i++)
         command[i] = std::toupper(command[i]);
-    typedef void (Server::*CmdHandling)(const std::string&, int);
+    typedef void (Server::*CmdHandling)(const std::string &, int);
     std::map<std::string, CmdHandling> cmds;
     cmds["PASS"] = &Server::cmdPass;
     cmds["NICK"] = &Server::cmdNick;
@@ -215,7 +215,7 @@ void Server::parseCommands(const std::string &cmd, int fd)
         (this->*(iter->second))(args, fd);
     else
     {
-        Client* client = getClient(fd);
+        Client *client = getClient(fd);
         if (client && client->isConnected(fd))
         {
             std::string err = "421 " + client->getNick() + " " + command + " :Unknown command\r\n";
@@ -224,30 +224,69 @@ void Server::parseCommands(const std::string &cmd, int fd)
     }
 }
 
-
 void Server::cmdPass(const std::string &args, int fd)
 {
     if (args.empty())
         return;
+    Client *client = getClient(fd);
     std::istringstream iss(args);
     std::string pass;
-
     iss >> pass;
-    if (pass)
-
-
+    if (!(iss >> pass) || pass.empty())
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        std::string err = "461 " + nick + " PASS" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    else if (!client->getNick().empty() || !client->getUser().empty())
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        std::string err = "462 " + nick + ERR_ALREADYREGISTERED;
+        send(fd, err.c_str(), err.size(), 0);
+    }
+    else if (!getPass().empty() && pass != getPass())
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        std::string err = "464 " + nick + " " + ERR_PASSWDMISMATCH;
+        send(fd, err.c_str(), err.size(), 0);
+        clearClients(fd);
+        close(fd);
+        return;
+    }
+    setPass(pass);
 }
 
 void Server::cmdKick(const std::string &args, int fd)
 {
+    if (args.empty())
+        return;
+    Client *client = getClient(fd);
     std::istringstream iss(args);
-    std::stream channel;
-    std
+    std::string pass;
+    iss >> pass;
+    if (!(iss >> pass) || pass.empty())
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        std::string err = "461 " + nick + " PASS" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    
 }
 void cmdTopic(const std::string &args, int fd);
 void cmdInvite(const std::string &args, int fd);
 void cmdMode(const std::string &args, int fd);
-void cmdPass(const std::string &args, int fd);
 void cmdNick(const std::string &args, int fd);
 void cmdUser(const std::string &args, int fd);
 void cmdJoin(const std::string &args, int fd);
+
+void Server::setPass(std::string &password)
+{
+    _password = password;
+}
+
+const std::string &Server::getPass() const
+{
+    return (_password);
+}
