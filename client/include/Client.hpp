@@ -19,20 +19,26 @@ private:
     std::string             buf;
     int                     fd;
     bool                    auth;
+    bool                    welcomed;
 
 public:
     static std::runtime_error disconnected;
 
-    Client() : nick(""), user(""), ip(""), host(""), chans(), buf(""), fd(-1), auth(false) {}
+    Client();
     Client(int fd, std::string ip, std::string host);
     ~Client();
 
     void        setFd(int fd);
     int         getFd() const;
+
     void        setAuth(bool auth);
     bool        getAuth();
     bool        isAuth();
     void        setAuthentified();
+
+    bool        isWelcomed();
+    void        setWelcomed(bool val);
+
     std::string getNick();
     void        setNick(std::string nick);
     std::string getUser();
@@ -41,17 +47,22 @@ public:
     void        setHost(std::string host);
     std::string getIp();
     void        setIp(std::string ip);
+
     bool        isNamed();
+
     void        setBuf(std::string buf);
     void        addBuf(std::string buf);
     std::string &getBuf();
+
     std::vector<Channel *> &getChans();
     void        addChan(Channel *chan);
     void        removeChan(Channel *chan);
+
     void        forward(std::string msg);
-    void        sendMsg(std::string msg, Channel &ch);
     void        sendMsg(std::string msg, Client &c);
     void        sendReply(std::string code, std::string msg);
+
     void        disconnect();
+
     bool        operator==(const Client &c) const;
 };
