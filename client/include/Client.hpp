@@ -23,7 +23,7 @@ private:
 public:
     static std::runtime_error disconnected;
 
-    Client() : nick(""), user(""), ip(""), host(""), chans(), buf(""), fd(-1), auth(false) {}
+    Client();
     Client(int fd, std::string ip, std::string host);
     ~Client();
 
