@@ -3,18 +3,19 @@
 bool Server::_signal = false;
 
 Server::Server() : _port(0)
-{}
+{
+}
 
 Server::~Server()
 {
     closeFds();
 }
 
-void    Server::serverInit(int port, const std::string& password)
+void Server::serverInit(int port, const std::string &password)
 {
-    _port     = port;
+    _port = port;
     _password = password;
-    signal(SIGINT,  signalHandler);
+    signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
     serverSocket();
     std::cout << "Server listening on port " << _port
@@ -24,7 +25,7 @@ void    Server::serverInit(int port, const std::string& password)
     std::cout << "Server shut down." << std::endl;
 }
 
-void    Server::serverSocket()
+void Server::serverSocket()
 {
     _socket.create();
     _socket.setReuseAddr();
@@ -32,13 +33,13 @@ void    Server::serverSocket()
     _socket.startListening();
     _socket.setNonBlocking();
     struct pollfd pfd;
-    pfd.fd      = _socket.getFd();
-    pfd.events  = POLLIN;
+    pfd.fd = _socket.getFd();
+    pfd.events = POLLIN;
     pfd.revents = 0;
     _pollFds.push_back(pfd);
 }
 
-void    Server::run()
+void Server::run()
 {
     while (!_signal)
     {
@@ -47,7 +48,8 @@ void    Server::run()
         int ret = poll(&_pollFds[0], (nfds_t)_pollFds.size(), -1);
         if (ret < 0)
         {
-            if (_signal) break;
+            if (_signal)
+                break;
             throw std::runtime_error(std::string("poll() failed: ") + strerror(errno));
         }
         for (size_t i = 0; i < _pollFds.size(); i++)
@@ -76,11 +78,11 @@ void    Server::run()
     }
 }
 
-void    Server::newClient()
+void Server::newClient()
 {
-    struct sockaddr_in  client_addr;
-    socklen_t           len = sizeof(client_addr);
-    int client_fd = accept(_socket.getFd(), (struct sockaddr*)&client_addr, &len);
+    struct sockaddr_in client_addr;
+    socklen_t len = sizeof(client_addr);
+    int client_fd = accept(_socket.getFd(), (struct sockaddr *)&client_addr, &len);
     if (client_fd < 0)
         return;
     if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0)
@@ -89,8 +91,8 @@ void    Server::newClient()
         return;
     }
     struct pollfd pfd;
-    pfd.fd      = client_fd;
-    pfd.events  = POLLIN;
+    pfd.fd = client_fd;
+    pfd.events = POLLIN;
     pfd.revents = 0;
     _pollFds.push_back(pfd);
     Client client;
@@ -101,9 +103,9 @@ void    Server::newClient()
               << inet_ntoa(client_addr.sin_addr) << std::endl;
 }
 
-void    Server::receiveData(int fd)
+void Server::receiveData(int fd)
 {
-    char    buf[512];
+    char buf[512];
     ssize_t bytes = recv(fd, buf, sizeof(buf) - 1, 0);
     if (bytes <= 0)
     {
@@ -121,7 +123,7 @@ void    Server::receiveData(int fd)
         if (_clients[i].getFd() != fd)
             continue;
         _clients[i].addBuf(std::string(buf, bytes));
-        std::string& rbuf = _clients[i].getBuf();
+        std::string &rbuf = _clients[i].getBuf();
         size_t pos;
         while ((pos = rbuf.find('\n')) != std::string::npos)
         {
@@ -135,7 +137,7 @@ void    Server::receiveData(int fd)
             {
                 parseCommands(cmd, fd);
             }
-            catch (const std::exception& e)
+            catch (const std::exception &e)
             {
                 std::cerr << "Parse error: " << e.what() << std::endl;
             }
@@ -144,14 +146,14 @@ void    Server::receiveData(int fd)
     }
 }
 
-void    Server::signalHandler(int sigNum)
+void Server::signalHandler(int sigNum)
 {
     (void)sigNum;
     std::cout << "\nSignal received – shutting down." << std::endl;
     _signal = true;
 }
 
-void    Server::closeFds()
+void Server::closeFds()
 {
     for (size_t i = 0; i < _clients.size(); i++)
         close(_clients[i].getFd());
@@ -160,82 +162,92 @@ void    Server::closeFds()
     _socket.closeSocket();
 }
 
-void    Server::clearClients(int fd)
+void Server::clearClients(int fd)
 {
     for (size_t i = 0; i < _pollFds.size(); i++)
     {
         if (_pollFds[i].fd == fd)
-            { _pollFds.erase(_pollFds.begin() + i); break; }
+        {
+            _pollFds.erase(_pollFds.begin() + i);
+            break;
+        }
     }
     for (size_t i = 0; i < _clients.size(); i++)
     {
         if (_clients[i].getFd() == fd)
-            { _clients.erase(_clients.begin() + i); break; }
+        {
+            _clients.erase(_clients.begin() + i);
+            break;
+        }
     }
 }
 
-const std::string&  Server::getPassword() const
+const std::string &Server::getPassword() const
 {
     return _password;
 }
 
-void    Server::parseCommands(const std::string& cmd, int fd)
+void Server::parseCommands(const std::string &cmd, int fd)
 {
     if (cmd.empty())
         return;
-
-    std::istringstream  iss(cmd);
-    std::string         command;
-    std::string         args;
-
+    std::istringstream iss(cmd);
+    std::string command;
+    std::string args;
     iss >> command;
     std::getline(iss, args);
     if (!args.empty() && args[0] == ' ')
         args.erase(0, 1);
     for (size_t i = 0; i < command.size(); i++)
         command[i] = std::toupper(command[i]);
-    if (command == "PASS")    
-        cmdPass(args, fd);
-    else if (command == "NICK")    
-        cmdNick(args, fd);
-    else if (command == "USER")    
-        cmdUser(args, fd);
-    else if (command == "JOIN")    
-        cmdJoin(args, fd);
-    else if (command == "PRIVMSG") 
-        cmdPrivmsg(args, fd);
-    else if (command == "KICK")    
-        cmdKick(args, fd);
-    else if (command == "INVITE")  
-        cmdInvite(args, fd);
-    else if (command == "TOPIC")   
-        cmdTopic(args, fd);
-    else if (command == "MODE")    
-        cmdMode(args, fd);
-    else if (command == "PART")    
-        cmdPart(args, fd);
-    else if (command == "QUIT")    
-        cmdQuit(args, fd);
+    typedef void (Server::*CmdHandling)(const std::string&, int);
+    std::map<std::string, CmdHandling> cmds;
+    cmds["PASS"] = &Server::cmdPass;
+    cmds["NICK"] = &Server::cmdNick;
+    cmds["USER"] = &Server::cmdUser;
+    cmds["JOIN"] = &Server::cmdJoin;
+    cmds["KICK"] = &Server::cmdKick;
+    cmds["INVITE"] = &Server::cmdInvite;
+    cmds["TOPIC"] = &Server::cmdTopic;
+    cmds["MODE"] = &Server::cmdMode;
+    std::map<std::string, CmdHandling>::iterator iter = cmds.find(command);
+    if (iter != cmds.end())
+        (this->*(iter->second))(args, fd);
     else
     {
-        //ajouter la verif si un client est enregister !!!
-        //seulemet dand ce cas envoyer
-        std::string err = "421 " + command + " :Unknown command\r\n";
-        send(fd, err.c_str(), err.size(), 0);
+        Client* client = getClient(fd);
+        if (client && client->isConnected(fd))
+        {
+            std::string err = "421 " + client->getNick() + " " + command + " :Unknown command\r\n";
+            send(fd, err.c_str(), err.size(), 0);
+        }
     }
 }
-void    Server::cmdKick(const std::string& args, int fd)
+
+
+void Server::cmdPass(const std::string &args, int fd)
 {
-    std::istringstream  iss(args);
+    if (args.empty())
+        return;
+    std::istringstream iss(args);
+    std::string pass;
+
+    iss >> pass;
+    if (pass)
+
+
+}
+
+void Server::cmdKick(const std::string &args, int fd)
+{
+    std::istringstream iss(args);
     std::stream channel;
     std
-
-    
 }
-    void    cmdTopic(const std::string& args, int fd);
-    void    cmdInvite(const std::string& args, int fd);
-    void    cmdMode(const std::string& args, int fd);
-    void    cmdPass(const std::string& args, int fd);
-    void    cmdNick(const std::string& args, int fd);
-    void    cmdUser(const std::string& args, int fd);
-    void    cmdJoin(const std::string& args, int fd);
+void cmdTopic(const std::string &args, int fd);
+void cmdInvite(const std::string &args, int fd);
+void cmdMode(const std::string &args, int fd);
+void cmdPass(const std::string &args, int fd);
+void cmdNick(const std::string &args, int fd);
+void cmdUser(const std::string &args, int fd);
+void cmdJoin(const std::string &args, int fd);
