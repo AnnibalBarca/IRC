@@ -17,6 +17,8 @@
 #include <stdexcept>
 #include "Socket.hpp"
 #include "Client.hpp"
+#include <map>
+#include <sstream>
 
 class Server
 {
@@ -56,6 +58,8 @@ public:
 
     Client* getClient(int fd);
     Client* getClientWithNick(const std::string& Nick);
+
+    typedef void (*CmdHandler)(const std::string&, int);
 
 
 
