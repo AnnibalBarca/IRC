@@ -1,62 +1,57 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#pragma once
 
-#include <Channel.hpp>
-#include <vector>
 #include <string>
+#include <vector>
 #include <stdexcept>
+#include <sys/socket.h>
+#include <cerrno>
 
 class Channel;
+
 class Client
 {
 private:
-	std::string nick;
-	std::string user;
-	std::string ip;
-	std::string host;
-	std::vector<Channel *> chans;
-	std::string buf;
-	int fd;
-	bool auth;
-	bool _operator;
+    std::string             nick;
+    std::string             user;
+    std::string             ip;
+    std::string             host;
+    std::vector<Channel *>  chans;
+    std::string             buf;
+    int                     fd;
+    bool                    auth;
 
 public:
-	Client(int fd, std::string ip, std::string host);
-	~Client();
+    static std::runtime_error disconnected;
 
-	char mode;
-	static std::runtime_error disconnected;
+    Client() : nick(""), user(""), ip(""), host(""), chans(), buf(""), fd(-1), auth(false) {}
+    Client(int fd, std::string ip, std::string host);
+    ~Client();
 
-	void setIp(std::string ip);
-	std::string getIp();
-	void setFd(int fd);
-	int getFd() const;
-	void setAuth(bool auth);
-	bool getAuth();
-	std::string getNick();
-	void setNick(std::string nick);
-	std::string getUser();
-	void setUser(std::string user);
-	std::string getHost();
-	void setHost(std::string host);
-	bool isAuth();
-	void setAuthentified();
-	bool isNamed();
-	void addChan(Channel *chan);
-	void removeChan(Channel *chan);
-	std::vector<Channel *> &getChans();
-	void setBuf(std::string buf);
-	void addBuf(std::string buf);
-	std::string getBuf();
-	bool isConnected(int fd);
-	void forward(std::string msg);
-	bool operator==(const Client &c) const;
-	void sendMsg(std::string msg, Channel &ch);
-	void sendMsg(std::string msg, Client &c);
-	void sendReply(std::string code, std::string msg);
-	void disconnect();
-	bool isOperator();
-	void setOperator();
+    void        setFd(int fd);
+    int         getFd() const;
+    void        setAuth(bool auth);
+    bool        getAuth();
+    bool        isAuth();
+    void        setAuthentified();
+    std::string getNick();
+    void        setNick(std::string nick);
+    std::string getUser();
+    void        setUser(std::string user);
+    std::string getHost();
+    void        setHost(std::string host);
+    std::string getIp();
+    void        setIp(std::string ip);
+    bool        isNamed();
+    void        setBuf(std::string buf);
+    void        addBuf(std::string buf);
+    std::string &getBuf();
+    std::vector<Channel *> &getChans();
+    void        addChan(Channel *chan);
+    void        removeChan(Channel *chan);
+    void        forward(std::string msg);
+    void        sendMsg(std::string msg, Channel &ch);
+    void        sendMsg(std::string msg, Client &c);
+    void        sendReply(std::string code, std::string msg);
+    void        disconnect();
+    bool        operator==(const Client &c) const;
 };
-
-#endif

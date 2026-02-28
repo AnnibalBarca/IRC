@@ -1,11 +1,11 @@
-#include <Server.hpp>
-#include <Client.hpp>
+#include "Client.hpp"
+#include "Channel.hpp"
 #include <algorithm>
 
 std::runtime_error Client::disconnected = std::runtime_error("Client disconnected");
 
 Client::Client(int fd, std::string ip, std::string host)
-	: nick(""), user(""), ip(ip), host(host), chans(), buf(""), fd(fd), auth(false), _operator(false) {}
+	: nick(""), user(""), ip(ip), host(host), chans(), buf(""), fd(fd), auth(false) {}
 Client::~Client() {}
 
 void		Client::setIp(std::string ip)		{ this->ip = ip; }
@@ -42,11 +42,7 @@ void		Client::setBuf(std::string buf)		{ this->buf = buf; }
 
 void		Client::addBuf(std::string buf)		{ this->buf += buf; }
 
-bool Client::isOperator()				{ return this->_operator; }
-
-void Client::setOperator()              { _operator = true; }
-
-std::string	Client::getBuf()					{ return this->buf; }
+std::string	&Client::getBuf()					{ return this->buf; }
 
 std::vector<Channel *> &Client::getChans()		{ return this->chans; }
 
@@ -54,8 +50,7 @@ bool		Client::operator==(const Client &c) const { return this->getFd() == c.getF
 
 void Client::forward(std::string msg)
 {
-	if (this->isConnected(this->fd))
-		send(this->fd, msg.c_str(), msg.size(), 0);
+	send(this->fd, msg.c_str(), msg.size(), MSG_DONTWAIT);
 }
 
 void Client::sendMsg(std::string msg, Channel &ch)	{ ch.broadcast(*this, msg); }
@@ -65,15 +60,6 @@ void Client::sendMsg(std::string msg, Client &c)	{ c.forward(msg); }
 void Client::sendReply(std::string code, std::string msg)
 {
 	this->forward(":" + this->host + " " + code + " " + msg + "\r\n");
-}
-
-bool Client::isConnected(int fd)
-{
-	char tmp;
-	int r = recv(fd, &tmp, 1, MSG_PEEK | MSG_DONTWAIT);
-	if (r == 0)  return false;
-	if (r < 0)   return (errno == EAGAIN || errno == EWOULDBLOCK);
-	return true;
 }
 
 void Client::addChan(Channel *chan)		{ this->chans.push_back(chan); }
@@ -99,6 +85,8 @@ void Client::disconnect()
 		(*it)->removeClient(*this);
 		(*it)->removeOp(*this);
 	}
+	this->chans.clear();
+
 	std::string quit_msg = ":" + this->nick + "!" + this->user + "@" + this->host + " QUIT :Leaving\r\n";
 	for (std::vector<Client *>::iterator it = to_notify.begin(); it != to_notify.end(); ++it)
 	{
