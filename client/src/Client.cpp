@@ -5,7 +5,7 @@
 std::runtime_error Client::disconnected = std::runtime_error("Client disconnected");
 
 Client::Client(int fd, std::string ip, std::string host)
-	: nick(""), user(""), ip(ip), host(host), chans(), buf(""), fd(fd), auth(false) {}
+	: nick(""), user(""), ip(ip), host(host), chans(), buf(""), fd(fd), auth(false), _operator(false) {}
 Client::~Client() {}
 
 void		Client::setIp(std::string ip)		{ this->ip = ip; }
@@ -41,6 +41,8 @@ bool		Client::isNamed()					{ return (!this->nick.empty() && !this->user.empty()
 void		Client::setBuf(std::string buf)		{ this->buf = buf; }
 
 void		Client::addBuf(std::string buf)		{ this->buf += buf; }
+
+bool Client::isOperator()				{ return this->_operator; }
 
 std::string	Client::getBuf()					{ return this->buf; }
 
