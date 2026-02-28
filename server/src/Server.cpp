@@ -263,16 +263,18 @@ void Server::cmdKick(const std::string &args, int fd)
         return;
     Client *client = getClient(fd);
     std::istringstream iss(args);
-    std::string pass;
-    iss >> pass;
-    if (!(iss >> pass) || pass.empty())
+    std::string kick;
+    iss >> kick;
+    if (!(iss >> kick) || kick.empty())
     {
         std::string nick = client->getNick().empty() ? "*" : client->getNick();
         std::string err = "461 " + nick + " PASS" + ERR_NEEDMOREPARAMS;
         send(fd, err.c_str(), err.size(), 0);
         return;
     }
-    
+    if (kick != )
+    while ()
+
 }
 void cmdTopic(const std::string &args, int fd);
 void cmdInvite(const std::string &args, int fd);
@@ -289,4 +291,14 @@ void Server::setPass(std::string &password)
 const std::string &Server::getPass() const
 {
     return (_password);
+}
+
+Client* Server::getClient(int fd)
+{
+    for (size_t i = 0; i < _clients.size(); i++)
+    {
+        if (_clients[i].getFd() == fd)
+            return &_clients[i];
+    }
+    return NULL;
 }
