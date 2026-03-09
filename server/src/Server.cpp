@@ -279,7 +279,7 @@ void Server::cmdKick(const std::string &args, int fd)
         send(fd, err.c_str(), err.size(), 0);
         return;
     }
-    if (!client->isOperator())
+    if (!channel->isOp(*client))
     {
         std::string nick = client->getNick().empty() ? "*" : client->getNick();
         std::string err = "482 " + nick + " " + name + ERR_CHANOPRIVSNEEDED;
