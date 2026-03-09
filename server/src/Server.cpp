@@ -272,12 +272,106 @@ void Server::cmdPass(const std::string &args, int fd)
     client->setAuth(true);
 }
 
-void Server::cmdTopic(const std::string &args, int fd)  { (void)args; (void)fd; }
+void Server::cmdKick(const std::string &args, int fd)
+{
+    Client *sender = getClient(fd);
+    if (!sender)
+        return;
+    std::string nick = nickOr(sender);
+    std::istringstream iss(args);
+    std::string chanName, targetNick, reason;
+    if (!(iss >> chanName >> targetNick))
+    {
+        std::string err = "461 " + nick + " KICK" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    std::getline(iss, reason);
+    if (!reason.empty() && reason[0] == ' ')
+        reason.erase(0, 1);
+    if (!reason.empty() && reason[0] == ':')
+        reason.erase(0, 1);
+    if (reason.empty())
+        reason = nick;
+    Channel *channel = getChannel(chanName);
+    if (!channel)
+    {
+        std::string err = "403 " + nick + " " + chanName + ERR_NOSUCHCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!channel->isClient(*sender))
+    {
+        std::string err = "442 " + nick + " " + chanName + ERR_NOTONCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!channel->isOp(*sender))
+    {
+        std::string err = "482 " + nick + " " + chanName + ERR_CHANOPRIVSNEEDED;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    Client *target = getClientByNick(targetNick);
+    if (!target)
+    {
+        std::string err = "401 " + nick + " " + targetNick + ERR_NOSUCHNICK;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!channel->isClient(*target))
+    {
+        std::string err = "441 " + nick + " " + targetNick + " " + chanName + ERR_USERNOTINCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    std::string kickMsg = " KICK " + chanName + " " + targetNick + " :" + reason;
+    channel->broadcast(*sender, kickMsg, _clients);
+    channel->removeClient(*target);
+    target->removeChan(channel);
+    if (channel->isEmpty())
+    {
+        for (size_t i = 0; i < _channels.size(); i++)
+        {
+            if (&_channels[i] == channel)
+            {
+                _channels.erase(_channels.begin() + i);
+                break;
+            }
+        }
+    }
+}
+
+void Server::cmdTopic(const std::string &args, int fd)  
+{ 
+      Client *sender = getClient(fd);
+    if (!sender)
+        return;
+    std::string nick = nickOr(sender);
+    std::istringstream iss(args);
+    std::string chanName, targetNick, reason;
+}
 void Server::cmdInvite(const std::string &args, int fd) { (void)args; (void)fd; }
 void Server::cmdMode(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdNick(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdUser(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdJoin(const std::string &args, int fd)   { (void)args; (void)fd; }
+
+
+// --To get a client by fd: getClient(fd)
+// --by Nickname : getClientByNick(Nick)
+// --To get a channel: getChannel(name)
+// ---- For Channel membership tests :
+// --------if (!chan->isClient(*sender))
+// --------if (!chan->isClient(*target))
+// --------if (!chan->isOp(*sender))
+// --------if (chan->isMode('i') && !chan->isInvited(*sender)) = Channel is invite-only and user not invited
+// ---- For Chennel mutation :
+// --------setters from Channel.hpp
+//
+
+
+
 
 Client *Server::getClient(int fd)
 {
