@@ -373,21 +373,33 @@ void Server::cmdTopic(const std::string &args, int fd)
     std::getline(iss, rest);
     if (!rest.empty() && rest[0] == ' ')
         rest.erase(0, 1);
-    if (!rest.)
-    if (!channel->isOp(*sender))
+    if (rest.empty())
+    {
+        if (!channel->getTopic().empty())
+        {
+            std::string rpl = "331 " + nick + " " + chanName + ERR_RPL_NOTOPIC;
+            send(fd, rpl.c_str(), RENAME_NOREPLACE.size(), 0);
+        }
+        else
+        {
+            std::string rpl = "332 " + nick + " " + chanName + " :" + channel->getTopic() + "\r\n";
+            send(fd, rpl.c_str(), rpl.size(), 0);
+        }
+        return;
+
+    }
+    if (channel->isMode('t') && !channel->isOp(*sender))
     {
         std::string err = "482 " + nick + " " + chanName + ERR_CHANOPRIVSNEEDED;
         send(fd, err.c_str(), err.size(), 0);
         return;
     }
-    if ()
-    if (!channel->getTopic().empty())
-    {
-        std::string err = "331 " + nick + " " + chanName + ERR_RPL_NOTOPIC;
-        send(fd, err.c_str(), err.size(), 0);
-        return;
-    }
-    if 
+    std::string initTopic = rest;
+    if (!initTopic[0] == ':')
+        initTopic.erase(0, 1);
+    channel->setTopic(initTopic);
+    std::string topicMsg = ":" + nick + " TOPIC " + chanName + " :" + initTopic + "\r\n";
+    channel->broadcast(*sender, topicMsg, _clients);
 }
 void Server::cmdInvite(const std::string &args, int fd) { (void)args; (void)fd; }
 void Server::cmdMode(const std::string &args, int fd)   { (void)args; (void)fd; }
