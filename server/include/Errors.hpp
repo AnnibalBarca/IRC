@@ -1,11 +1,18 @@
 #pragma once
 
-#include "Client.hpp"
-#include "Channel.hpp"
+// ── Numeric error reply texts ────────────────────────────────────
+// Usage:  client->sendReply("461", client->getNick() + " KICK" + ERR_NEEDMOREPARAMS);
+//         → :<host> 461 <nick> KICK :Not enough parameters\r\n
 
-#define ERR_PASSWDMISMATCH = " :Password incorrect\r\n"
-#define ERR_NEEDMOREPARAMS = " :Not enough parameters\r\n"
-#define ERR_ALREADYREGISTERED = " :You may not reregister\r\n"
-#define ERR_NOSUCHCHANNEL = " :No such channel\r\n"
-#define ERR_CHANNOPRIVSNEEDED = " :You're not channel operator\r\n"
-#define ERR_USERNOTINCHANNEL = " :They aren't on that channel\r\n"
+#define ERR_NOSUCHNICK        " :No such nick/channel\r\n"
+#define ERR_NOSUCHCHANNEL     " :No such channel\r\n"
+#define ERR_UNKNOWNCOMMAND    " :Unknown command\r\n"
+#define ERR_NEEDMOREPARAMS    " :Not enough parameters\r\n"
+#define ERR_ALREADYREGISTERED " :You may not reregister\r\n"
+#define ERR_PASSWDMISMATCH    " :Password incorrect\r\n"
+#define ERR_USERNOTINCHANNEL  " :They aren't on that channel\r\n"
+#define ERR_NOTONCHANNEL      " :You're not on that channel\r\n"
+#define ERR_CHANOPRIVSNEEDED  " :You're not channel operator\r\n"
+#define ERR_CHANNELISFULL     " :Cannot join channel (+l)\r\n"
+#define ERR_INVITEONLYCHAN    " :Cannot join channel (+i)\r\n"
+#define ERR_BADCHANNELKEY     " :Cannot join channel (+k)\r\n"
