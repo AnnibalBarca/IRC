@@ -30,7 +30,7 @@ private:
     static bool                 _signal;
     std::vector<Client>         _clients;
     std::vector<struct pollfd>  _pollFds;
-    std::vector<Channel>        _channel;
+    std::vector<Channel>        _channels;
 
 public:
     Server();
@@ -58,16 +58,11 @@ public:
     void    cmdUser(const std::string& args, int fd);
     void    cmdJoin(const std::string& args, int fd);
 
-    Client* getClient(int fd);
-    Client* getClientWithNick(const std::string& Nick);
-    Channel* getChannel(std::string name);
+    Client*  getClient(int fd);
+    Client*  getClientByNick(const std::string& nick);
+    Channel* getChannel(const std::string& name);
 
-    typedef void (*CmdHandler)(const std::string&, int);
-
-
-
-    const std::string&  getPass() const;
-    void setPass(std::string &password);
+    const std::string&  getPassword() const;
 };
 
 #endif
