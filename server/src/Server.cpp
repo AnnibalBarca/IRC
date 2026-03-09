@@ -344,12 +344,50 @@ void Server::cmdKick(const std::string &args, int fd)
 
 void Server::cmdTopic(const std::string &args, int fd)  
 { 
-      Client *sender = getClient(fd);
+    Client *sender = getClient(fd);
     if (!sender)
         return;
     std::string nick = nickOr(sender);
     std::istringstream iss(args);
-    std::string chanName, targetNick, reason;
+    std::string chanName, topicName;
+    if (!(iss >> chanName >> topicName))
+    {
+        std::string err = "461 " + nick + " TOPIC" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    Channel *channel = getChannel(chanName);
+    if (!channel)
+    {
+        std::string err = "403 " + nick + " " + chanName + ERR_NOSUCHCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!channel->isClient(*sender))
+    {
+        std::string err = "442 " + nick + " " + chanName + ERR_NOTONCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    std::string rest;
+    std::getline(iss, rest);
+    if (!rest.empty() && rest[0] == ' ')
+        rest.erase(0, 1);
+    if (!rest.)
+    if (!channel->isOp(*sender))
+    {
+        std::string err = "482 " + nick + " " + chanName + ERR_CHANOPRIVSNEEDED;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if ()
+    if (!channel->getTopic().empty())
+    {
+        std::string err = "331 " + nick + " " + chanName + ERR_RPL_NOTOPIC;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if 
 }
 void Server::cmdInvite(const std::string &args, int fd) { (void)args; (void)fd; }
 void Server::cmdMode(const std::string &args, int fd)   { (void)args; (void)fd; }
