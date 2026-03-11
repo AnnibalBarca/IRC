@@ -16,3 +16,5 @@
 #define ERR_CHANNELISFULL     " :Cannot join channel (+l)\r\n"
 #define ERR_INVITEONLYCHAN    " :Cannot join channel (+i)\r\n"
 #define ERR_BADCHANNELKEY     " :Cannot join channel (+k)\r\n"
+#define ERR_RPL_NOTOPIC       " :No topic is set\r\n"
+#define ERR_USERONCHANNEL     " :is already on channel\r\n"

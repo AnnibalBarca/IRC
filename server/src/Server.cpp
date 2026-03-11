@@ -349,8 +349,8 @@ void Server::cmdTopic(const std::string &args, int fd)
         return;
     std::string nick = nickOr(sender);
     std::istringstream iss(args);
-    std::string chanName, topicName;
-    if (!(iss >> chanName >> topicName))
+    std::string chanName;
+    if (!(iss >> chanName))
     {
         std::string err = "461 " + nick + " TOPIC" + ERR_NEEDMOREPARAMS;
         send(fd, err.c_str(), err.size(), 0);
@@ -375,10 +375,10 @@ void Server::cmdTopic(const std::string &args, int fd)
         rest.erase(0, 1);
     if (rest.empty())
     {
-        if (!channel->getTopic().empty())
+        if (channel->getTopic().empty())
         {
             std::string rpl = "331 " + nick + " " + chanName + ERR_RPL_NOTOPIC;
-            send(fd, rpl.c_str(), RENAME_NOREPLACE.size(), 0);
+            send(fd, rpl.c_str(), rpl.size(), 0);
         }
         else
         {
@@ -395,14 +395,72 @@ void Server::cmdTopic(const std::string &args, int fd)
         return;
     }
     std::string initTopic = rest;
-    if (!initTopic[0] == ':')
+    if (initTopic[0] == ':')
         initTopic.erase(0, 1);
     channel->setTopic(initTopic);
     std::string topicMsg = ":" + nick + " TOPIC " + chanName + " :" + initTopic + "\r\n";
     channel->broadcast(*sender, topicMsg, _clients);
 }
-void Server::cmdInvite(const std::string &args, int fd) { (void)args; (void)fd; }
+
+void Server::cmdInvite(const std::string &args, int fd) 
+{
+
+    Client *sender = getClient(fd);
+    if (!sender)
+        return;
+    std::string nick = nickOr(sender);
+    std::istringstream iss(args);
+    std::string targetNick, chanName;
+    if (!(iss >> targetNick >> chanName))
+    {
+        std::string err = "461 " + nick + " INVITE" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    Channel *channel = getChannel(chanName);
+    if (!channel)
+    {
+        std::string err = "403 " + nick + " " + chanName + ERR_NOSUCHCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!channel->isClient(*sender))
+    {
+        std::string err = "442 " + nick + " " + chanName + ERR_NOTONCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (channel->isMode('i') && !channel->isOp(*sender))
+    {
+        std::string err = "482 " + nick + " " + chanName + ERR_CHANOPRIVSNEEDED;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    Client *target = getClientByNick(targetNick);
+    if (!target)
+    {
+        std::string err = "401 " + nick + " " + targetNick + ERR_NOSUCHNICK;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (channel->isClient(*target))
+    {
+        std::string err = "443 " + nick + " " + targetNick + " " + chanName + ERR_USERONCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    channel->addInvite(*target);
+    std::string rpl = "341 " + nick + " " + targetNick + " " + chanName + "\r\n";
+    send(fd, rpl.c_str(), rpl.size(), 0);
+    std::string rpl = "341 " + nick + " " + targetNick + " " + chanName + "\r\n";
+    send(fd, rpl.c_str(), rpl.size(), 0);   
+    
+
+}
+
 void Server::cmdMode(const std::string &args, int fd)   { (void)args; (void)fd; }
+{}
+
 void Server::cmdNick(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdUser(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdJoin(const std::string &args, int fd)   { (void)args; (void)fd; }
