@@ -8,10 +8,10 @@ int main()
     {
 		signal(SIGINT, Server::signalHandler); // catch ctrl + c
 		signal(SIGQUIT, Server::signalHandler); // (catch ctrl + \)
-		ser.serverInit();
+		ser.serverInit(42, "pass");
 	}
 	catch(const std::exception& e){
-		ser.closeFds(); 
+		ser.closeFds();
 		std::cerr << e.what() << std::endl;
 	}
 	std::cout << "The server has been closed!" << std::endl;

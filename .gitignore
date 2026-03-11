@@ -1,0 +1,14 @@
+# .gitignore
+.vscode/
+*/*/*/obj/
+*/*/obj/
+*/obj/
+obj/
+*.out
+*.txt
+*.o
+*.a
+*.tmp
+
+# Executables
+IRC
