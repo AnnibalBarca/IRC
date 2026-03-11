@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include "Socket.hpp"
 #include "Client.hpp"
-#include "Errors.hpp"
+#include "Messages.hpp"
 #include <map>
 #include <sstream>
 

@@ -454,7 +454,6 @@ void Server::cmdInvite(const std::string &args, int fd)
     send(fd, rpl.c_str(), rpl.size(), 0);
     std::string inviteMsg = ":" + nick + " INVITE " + targetNick + " " + chanName + "\r\n";
     send(target->getFd(), inviteMsg.c_str(), inviteMsg.size(), 0);   
-    
 
 }
 
