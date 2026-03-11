@@ -452,8 +452,8 @@ void Server::cmdInvite(const std::string &args, int fd)
     channel->addInvite(*target);
     std::string rpl = "341 " + nick + " " + targetNick + " " + chanName + "\r\n";
     send(fd, rpl.c_str(), rpl.size(), 0);
-    std::string rpl = "341 " + nick + " " + targetNick + " " + chanName + "\r\n";
-    send(fd, rpl.c_str(), rpl.size(), 0);   
+    std::string inviteMsg = ":" + nick + " INVITE " + targetNick + " " + chanName + "\r\n";
+    send(target->getFd(), inviteMsg.c_str(), inviteMsg.size(), 0);   
     
 
 }
