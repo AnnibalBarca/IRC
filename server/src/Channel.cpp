@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 #include <algorithm>
 
-Channel::Channel() : name(""), topic(""), passwd(""), limit(0) {}
+Channel::Channel() : name(""), topic(""), passwd(""), createdTime(std::time(NULL)), limit(0) {}
 
 Channel::Channel(std::string name, Client &owner)
     : name(name), topic(""), passwd(""), limit(0)
@@ -164,4 +164,6 @@ std::string Channel::getModes()
 }
 
 std::time_t Channel::getCreationTime() const
-{}
+{
+    return this->createdTime;
+}

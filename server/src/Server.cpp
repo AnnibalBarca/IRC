@@ -404,7 +404,6 @@ void Server::cmdTopic(const std::string &args, int fd)
 
 void Server::cmdInvite(const std::string &args, int fd) 
 {
-
     Client *sender = getClient(fd);
     if (!sender)
         return;
@@ -454,11 +453,130 @@ void Server::cmdInvite(const std::string &args, int fd)
     send(fd, rpl.c_str(), rpl.size(), 0);
     std::string inviteMsg = ":" + nick + " INVITE " + targetNick + " " + chanName + "\r\n";
     send(target->getFd(), inviteMsg.c_str(), inviteMsg.size(), 0);   
-
 }
 
-void Server::cmdMode(const std::string &args, int fd)   { (void)args; (void)fd; }
-{}
+void Server::cmdMode(const std::string &args, int fd)
+{
+    Client *sender = getClient(fd);
+    if (!sender)
+        return;
+    std::string nick = nickOr(sender);
+    std::istringstream iss(args);
+    std::string chanName, modeStr;
+    if (!(iss >> chanName))
+    {
+        std::string err = "461 " + nick + " MODE" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    Channel *channel = getChannel(chanName);
+    if (!channel)
+    {
+        std::string err = "403 " + nick + " " + chanName + ERR_NOSUCHCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!(iss >> modeStr))
+    {
+        std::string rpl324 = "324 " + nick + " " + chanName + " +" + channel->getModes() + "\r\n";
+        send(fd, rpl324.c_str(), rpl324.size(), 0);
+        std::stringstream ss;
+        ss << channel->getCreationTime();
+        std::string rpl329 = "329 " + nick + " " + chanName + " " + ss.str() + "\r\n";
+        send(fd, rpl329.c_str(), rpl329.size(), 0);
+        return;
+    }
+    if (!channel->isClient(*sender))
+    {
+        std::string err = "442 " + nick + " " + chanName + ERR_NOTONCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    if (!channel->isOp(*sender))
+    {
+        std::string err = "482 " + nick + " " + chanName + ERR_CHANOPRIVSNEEDED;
+        send(fd, err.c_str(), err.size(), 0);
+        return;
+    }
+    std::vector<std::string> params;
+    std::string p;
+    while (iss >> p)
+        params.push_back(p);
+    size_t paramIdx = 0;
+    bool adding = true;
+    std::string appliedPlus, appliedMinus;
+    std::string appliedPlusParams, appliedMinusParams;
+    for (size_t i = 0; i < modeStr.size(); ++i)
+    {
+        char c = modeStr[i];
+
+        if (c == '+')
+        {
+            adding = true;
+            continue;
+        }
+        if (c == '-')
+        {
+            adding = false;
+            continue;
+        }
+        bool success = false;
+        switch (c)
+        {
+            case 'i':
+                success = modeI(channel, nick, chanName, adding, fd);
+                break;
+            case 't':
+                success = modeT(channel, nick, chanName, adding, fd);
+                break;
+            case 'k':
+                success = modeK(channel, nick, chanName, adding, paramIdx, params, fd);
+                break;
+            case 'o':
+                success = modeO(channel, nick, chanName, adding, paramIdx, params, fd);
+                break;
+            case 'l':
+                success = modeL(channel, nick, chanName, adding, paramIdx, params, fd);
+                break;
+            default:
+                if (std::isalpha((unsigned char)c))
+                {
+                    std::string err = "472 " + nick + " " + std::string(1, c) + " :is unknown mode char to me\r\n";
+                    send(fd, err.c_str(), err.size(), 0);
+                }
+                continue;
+        }
+        if (success)
+        {
+            if (adding)
+                appliedPlus += c;
+            else
+                appliedMinus += c;
+            if (c == 'k' && adding && paramIdx > 0)
+                appliedPlusParams += " " + params[paramIdx - 1];
+            else if (c == 'o' && paramIdx > 0)
+                (adding ? appliedPlusParams : appliedMinusParams) += " " + params[paramIdx - 1];
+            else if (c == 'l' && adding && paramIdx > 0)
+                appliedPlusParams += " " + params[paramIdx - 1];
+        }
+    }
+    std::string finalModes, finalParams;
+    if (!appliedPlus.empty())
+    {
+        finalModes += "+" + appliedPlus;
+        finalParams += appliedPlusParams;
+    }
+    if (!appliedMinus.empty())
+    {
+        finalModes += "-" + appliedMinus;
+        finalParams += appliedMinusParams;
+    }
+    if (!finalModes.empty())
+    {
+        std::string msg = ":" + nick + " MODE " + chanName + " " + finalModes + finalParams + "\r\n";
+        channel->broadcast(*sender, msg, _clients);
+    }
+}
 
 void Server::cmdNick(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdUser(const std::string &args, int fd)   { (void)args; (void)fd; }
@@ -477,7 +595,15 @@ void Server::cmdJoin(const std::string &args, int fd)   { (void)args; (void)fd; 
 // --------setters from Channel.hpp
 //
 
-
+void Server::modeHandling(Channel *channel, char mod, bool addOrRemove)
+{
+    if (!(mod == 'i' || mod == 'k' || mod == 'l' || mod == 'o' || mod == 't'))
+        return ;
+    if (addOrRemove == true)
+        channel->addMode(mod);
+    else
+        channel->removeMode(mod);
+}
 
 
 Client *Server::getClient(int fd)
