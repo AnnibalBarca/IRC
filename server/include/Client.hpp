@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <sys/socket.h>
 #include <cerrno>
+#include <ctime>
 
 class Channel;
 
