@@ -62,6 +62,15 @@ public:
     Client*  getClientByNick(const std::string& nick);
     Channel* getChannel(const std::string& name);
 
+    bool modeI(Channel *channel, const std::string &nick, const std::string &chanName, bool adding, int fd);
+    bool modeT(Channel *channel, const std::string &nick, const std::string &chanName, bool adding, int fd);
+    bool modeK(Channel *channel, const std::string &nick, const std::string &chanName, 
+               bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd);
+    bool modeO(Channel *channel, const std::string &nick, const std::string &chanName, 
+               bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd);
+    bool modeL(Channel *channel, const std::string &nick, const std::string &chanName, 
+               bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd);
+
     const std::string&  getPassword() const;
 };
 
