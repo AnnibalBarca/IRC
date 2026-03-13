@@ -162,3 +162,6 @@ std::string Channel::getModes()
         result += modes[i];
     return result;
 }
+
+std::time_t Channel::getCreationTime() const
+{}

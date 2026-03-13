@@ -15,6 +15,7 @@ private:
     std::vector<int>    opFds;
     std::vector<int>    invitedFds;
     std::vector<char>   modes;
+    std::time_t             createdTime;
 
     Client *findClient(int fd, std::vector<Client> &allClients);
 
@@ -55,4 +56,6 @@ public:
     std::string getModes();
 
     bool        isEmpty();
+
+    std::time_t getCreationTime() const;
 };
