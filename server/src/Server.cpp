@@ -142,6 +142,12 @@ void Server::receiveData(int fd)
             }
             catch (const std::exception &e)
             {
+                if (std::string(e.what()) == Client::disconnected.what())
+                {
+                    clearClients(fd);
+                    close(fd);
+                    return;
+                }
                 std::cerr << "Parse error: " << e.what() << std::endl;
             }
         }
@@ -221,6 +227,7 @@ void Server::parseCommands(const std::string &cmd, int fd)
     cmds["INVITE"] = &Server::cmdInvite;
     cmds["TOPIC"] = &Server::cmdTopic;
     cmds["MODE"] = &Server::cmdMode;
+    cmds["QUIT"] = &Server::cmdQuit;
     std::map<std::string, CmdHandling>::iterator iter = cmds.find(command);
     if (iter != cmds.end())
         (this->*(iter->second))(args, fd);
