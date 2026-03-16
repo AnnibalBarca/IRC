@@ -1,8 +1,8 @@
-NAME = irc
+NAME = ircserv
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP -I server/include -I client/include
 OBJ_DIR = obj
-SRC_ALL = main.cpp server/src/Server.cpp server/src/Channel.cpp server/src/Socket.cpp client/src/Client.cpp
+SRC_ALL = main.cpp server/src/Server.cpp server/src/Channel.cpp server/src/Socket.cpp server/src/ErrorReplies.cpp server/src/Mode.cpp server/src/Pass.cpp server/src/Kick.cpp server/src/Topic.cpp server/src/Invite.cpp server/src/Identity.cpp server/src/Client.cpp
 OBJ = $(addprefix $(OBJ_DIR)/, $(SRC_ALL:.cpp=.o))
 DEPS = $(OBJ:.o=.d)
 

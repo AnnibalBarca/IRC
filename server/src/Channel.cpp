@@ -1,10 +1,10 @@
 #include "Channel.hpp"
 #include <algorithm>
 
-Channel::Channel() : name(""), topic(""), passwd(""), createdTime(std::time(NULL)), limit(0) {}
+Channel::Channel() : name(""), topic(""), passwd(""), limit(0), createdTime(std::time(NULL)) {}
 
 Channel::Channel(std::string name, Client &owner)
-    : name(name), topic(""), passwd(""), limit(0)
+    : name(name), topic(""), passwd(""), limit(0), createdTime(std::time(NULL))
 {
     this->clientFds.push_back(owner.getFd());
     this->opFds.push_back(owner.getFd());
