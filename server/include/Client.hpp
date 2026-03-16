@@ -36,6 +36,7 @@ public:
     bool        getAuth();
     bool        isAuth();
     void        setAuthentified();
+    bool        isRegistered();
 
     bool        isWelcomed();
     void        setWelcomed(bool val);

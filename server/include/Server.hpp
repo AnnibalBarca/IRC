@@ -60,6 +60,7 @@ public:
     void    cmdNick(const std::string& args, int fd);
     void    cmdUser(const std::string& args, int fd);
     void    cmdJoin(const std::string& args, int fd);
+    void    cmdQuit(const std::string &args, int fd);
 
     bool    modeI(Channel *channel, bool adding);
     bool    modeT(Channel *channel, bool adding);

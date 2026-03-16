@@ -58,7 +58,7 @@ Running the client
 
 	1. Send `PASS <password>` if the server requires it
 	2. Send `NICK <nickname>`
-	3. Send `USER <username> 0 * :Real Name`
+	3. Send `USER <username> 0 *`
 	*This project has been created as part of the 42 curriculum by almeekel and nagaudey.*
 
 	## Project name and files to submit
