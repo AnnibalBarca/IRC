@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
@@ -17,6 +19,7 @@
 #include <stdexcept>
 #include "Socket.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 #include "Messages.hpp"
 #include <map>
 #include <sstream>
@@ -57,6 +60,17 @@ public:
     void    cmdNick(const std::string& args, int fd);
     void    cmdUser(const std::string& args, int fd);
     void    cmdJoin(const std::string& args, int fd);
+    void    cmdQuit(const std::string &args, int fd);
+
+    bool    modeI(Channel *channel, bool adding);
+    bool    modeT(Channel *channel, bool adding);
+    bool    modeK(Channel *channel, const std::string &nick, bool adding,
+                  size_t &paramIdx, const std::vector<std::string> &params, int fd);
+    bool    modeO(Channel *channel, const std::string &nick, const std::string &chanName, bool adding,
+                  size_t &paramIdx, const std::vector<std::string> &params, int fd);
+    bool    modeL(Channel *channel, const std::string &nick, bool adding,
+                  size_t &paramIdx, const std::vector<std::string> &params, int fd);
+    void    modeHandling(Channel *channel, char mod, bool addOrRemove);
 
     Client*  getClient(int fd);
     Client*  getClientByNick(const std::string& nick);

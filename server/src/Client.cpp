@@ -26,7 +26,8 @@ std::string Client::getHost()                   { return this->host; }
 void        Client::setHost(std::string host)   { this->host = host; }
 std::string Client::getIp()                     { return this->ip; }
 void        Client::setIp(std::string ip)       { this->ip = ip; }
-bool        Client::isNamed()                   { return (!this->nick.empty() && !this->user.empty()); }
+bool        Client::isRegistered()              { return (!this->nick.empty() && !this->user.empty()); }
+bool        Client::isNamed()                   { return (!this->user.empty()); }
 void        Client::setBuf(std::string buf)     { this->buf = buf; }
 void        Client::addBuf(std::string buf)     { this->buf += buf; }
 std::string &Client::getBuf()                   { return this->buf; }

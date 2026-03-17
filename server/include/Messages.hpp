@@ -1,9 +1,5 @@
 #pragma once
 
-// ── Numeric error reply texts ────────────────────────────────────
-// Usage:  client->sendReply("461", client->getNick() + " KICK" + ERR_NEEDMOREPARAMS);
-//         → :<host> 461 <nick> KICK :Not enough parameters\r\n
-
 #define ERR_NOSUCHNICK        " :No such nick/channel\r\n"
 #define ERR_NOSUCHCHANNEL     " :No such channel\r\n"
 #define ERR_UNKNOWNCOMMAND    " :Unknown command\r\n"
@@ -18,3 +14,4 @@
 #define ERR_BADCHANNELKEY     " :Cannot join channel (+k)\r\n"
 #define ERR_RPL_NOTOPIC       " :No topic is set\r\n"
 #define ERR_USERONCHANNEL     " :is already on channel\r\n"
+#define ERR_UNKNOWNMODE       " :is unknown mode char to me\r\n"
