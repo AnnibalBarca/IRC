@@ -1,6 +1,5 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
-
 void Server::cmdPass(const std::string &args, int fd)
 {
     Client *client = getClient(fd);

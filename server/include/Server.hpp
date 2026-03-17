@@ -1,8 +1,6 @@
 #pragma once
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -23,7 +21,6 @@
 #include "Messages.hpp"
 #include <map>
 #include <sstream>
-
 class Server
 {
 private:
@@ -34,23 +31,17 @@ private:
     std::vector<Client>         _clients;
     std::vector<struct pollfd>  _pollFds;
     std::vector<Channel>        _channels;
-
 public:
     Server();
     ~Server();
-
     void    serverInit(int port, const std::string& password);
     void    serverSocket();
-
     void    run();
     void    newClient();
     void    receiveData(int fd);
-
     static void signalHandler(int sigNum);
-
     void    closeFds();
     void    clearClients(int fd);
-
     void    parseCommands(const std::string& cmd, int fd);
     void    cmdKick(const std::string& args, int fd);
     void    cmdTopic(const std::string& args, int fd);
@@ -61,7 +52,6 @@ public:
     void    cmdUser(const std::string& args, int fd);
     void    cmdJoin(const std::string& args, int fd);
     void    cmdQuit(const std::string &args, int fd);
-
     bool    modeI(Channel *channel, bool adding);
     bool    modeT(Channel *channel, bool adding);
     bool    modeK(Channel *channel, const std::string &nick, bool adding,
@@ -71,22 +61,9 @@ public:
     bool    modeL(Channel *channel, const std::string &nick, bool adding,
                   size_t &paramIdx, const std::vector<std::string> &params, int fd);
     void    modeHandling(Channel *channel, char mod, bool addOrRemove);
-
     Client*  getClient(int fd);
     Client*  getClientByNick(const std::string& nick);
     Channel* getChannel(const std::string& name);
-
-    bool modeI(Channel *channel, const std::string &nick, const std::string &chanName, bool adding, int fd);
-    bool modeT(Channel *channel, const std::string &nick, const std::string &chanName, bool adding, int fd);
-    bool modeK(Channel *channel, const std::string &nick, const std::string &chanName, 
-               bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    bool modeO(Channel *channel, const std::string &nick, const std::string &chanName, 
-               bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    bool modeL(Channel *channel, const std::string &nick, const std::string &chanName, 
-               bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd);
-
     const std::string&  getPassword() const;
 };
-
 #endif
-

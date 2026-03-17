@@ -1,5 +1,4 @@
 #pragma once
-
 #define ERR_NOSUCHNICK        " :No such nick/channel\r\n"
 #define ERR_NOSUCHCHANNEL     " :No such channel\r\n"
 #define ERR_UNKNOWNCOMMAND    " :Unknown command\r\n"
