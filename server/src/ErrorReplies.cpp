@@ -71,5 +71,4 @@ namespace ErrorReply
     {
         sendReply(fd, "433 " + user + " " + nickName + ERR_NICKNAMEINUSE);
     }
-
 }

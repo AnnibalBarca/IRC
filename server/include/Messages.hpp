@@ -15,4 +15,4 @@
 #define ERR_USERONCHANNEL     " :is already on channel\r\n"
 #define ERR_UNKNOWNMODE       " :is unknown mode char to me\r\n"
 #define ERR_NICKNAMEINUSE     " ::Nickname is already in use\r\n"
-#define ERR_ERRONEUSNICKNAME  ""
+#define ERR_ERRONEUSNICKNAME  " :Erroneus nickname\r\n"
