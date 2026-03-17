@@ -26,7 +26,7 @@ void Server::cmdNick(const std::string &args, int fd)
         ErrorReply::sendNoNickNameGiven(fd, user);
         return;
     }
-    for (int idx = 0; idx < nickName.size(); idx++)
+    for (unsigned int idx = 0; idx < nickName.size(); idx++)
     {
         if (isWrongNameChar(nickName[idx]))
         {

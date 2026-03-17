@@ -3,13 +3,6 @@
 #include "ErrorReplies.hpp"
 #include <cstdlib>
 
-static std::string nickOr(Client *c)
-{
-    if (!c || c->getNick().empty())
-        return "*";
-    return c->getNick();
-}
-
 void Server::cmdMode(const std::string &args, int fd)
 {
     Client *sender = getClient(fd);
