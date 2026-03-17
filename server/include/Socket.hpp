@@ -7,20 +7,21 @@
 #include <cerrno>
 #include <stdexcept>
 #include <string>
+
 class Socket
 {
-private:
-    int                 _fd;
-    struct sockaddr_in  _addr;
-public:
-    Socket();
-    ~Socket();
-    void    create();
-    void    setReuseAddr();
-    void    bindTo(int port);
-    void    startListening();
-    void    setNonBlocking();
-    int     getFd()   const;
-    const struct sockaddr_in& getAddr() const;
-    void    closeSocket();
+    private:
+        int                 _fd;
+        struct sockaddr_in  _addr;
+    public:
+        Socket();
+        ~Socket();
+        void    create();
+        void    setReuseAddr();
+        void    bindTo(int port);
+        void    startListening();
+        void    setNonBlocking();
+        int     getFd()   const;
+        const struct sockaddr_in& getAddr() const;
+        void    closeSocket();
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+
 namespace ErrorReply
 {
     void sendUnknownCommand(int fd, const std::string &user, const std::string &command);

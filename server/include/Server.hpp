@@ -21,49 +21,50 @@
 #include "Messages.hpp"
 #include <map>
 #include <sstream>
+
 class Server
 {
-private:
-    int                         _port;
-    Socket                      _socket;
-    std::string                 _password;
-    static bool                 _signal;
-    std::vector<Client>         _clients;
-    std::vector<struct pollfd>  _pollFds;
-    std::vector<Channel>        _channels;
-public:
-    Server();
-    ~Server();
-    void    serverInit(int port, const std::string& password);
-    void    serverSocket();
-    void    run();
-    void    newClient();
-    void    receiveData(int fd);
-    static void signalHandler(int sigNum);
-    void    closeFds();
-    void    clearClients(int fd);
-    void    parseCommands(const std::string& cmd, int fd);
-    void    cmdKick(const std::string& args, int fd);
-    void    cmdTopic(const std::string& args, int fd);
-    void    cmdInvite(const std::string& args, int fd);
-    void    cmdMode(const std::string& args, int fd);
-    void    cmdPass(const std::string& args, int fd);
-    void    cmdNick(const std::string& args, int fd);
-    void    cmdUser(const std::string& args, int fd);
-    void    cmdJoin(const std::string& args, int fd);
-    void    cmdQuit(const std::string &args, int fd);
-    bool    modeI(Channel *channel, bool adding);
-    bool    modeT(Channel *channel, bool adding);
-    bool    modeK(Channel *channel, const std::string &user, bool adding,
-                  size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    bool    modeO(Channel *channel, const std::string &user, const std::string &chanName, bool adding,
-                  size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    bool    modeL(Channel *channel, const std::string &user, bool adding,
-                  size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    void    modeHandling(Channel *channel, char mod, bool addOrRemove);
-    Client*  getClient(int fd);
-    Client*  getClientByNick(const std::string& nick);
-    Channel* getChannel(const std::string& name);
-    const std::string&  getPassword() const;
+    private:
+        int                         _port;
+        Socket                      _socket;
+        std::string                 _password;
+        static bool                 _signal;
+        std::vector<Client>         _clients;
+        std::vector<struct pollfd>  _pollFds;
+        std::vector<Channel>        _channels;
+    public:
+        Server();
+        ~Server();
+        void    serverInit(int port, const std::string& password);
+        void    serverSocket();
+        void    run();
+        void    newClient();
+        void    receiveData(int fd);
+        static void signalHandler(int sigNum);
+        void    closeFds();
+        void    clearClients(int fd);
+        void    parseCommands(const std::string& cmd, int fd);
+        void    cmdKick(const std::string& args, int fd);
+        void    cmdTopic(const std::string& args, int fd);
+        void    cmdInvite(const std::string& args, int fd);
+        void    cmdMode(const std::string& args, int fd);
+        void    cmdPass(const std::string& args, int fd);
+        void    cmdNick(const std::string& args, int fd);
+        void    cmdUser(const std::string& args, int fd);
+        void    cmdJoin(const std::string& args, int fd);
+        void    cmdQuit(const std::string &args, int fd);
+        bool    modeI(Channel *channel, bool adding);
+        bool    modeT(Channel *channel, bool adding);
+        bool    modeK(Channel *channel, const std::string &user, bool adding,
+                      size_t &paramIdx, const std::vector<std::string> &params, int fd);
+        bool    modeO(Channel *channel, const std::string &user, const std::string &chanName, bool adding,
+                      size_t &paramIdx, const std::vector<std::string> &params, int fd);
+        bool    modeL(Channel *channel, const std::string &user, bool adding,
+                      size_t &paramIdx, const std::vector<std::string> &params, int fd);
+        void    modeHandling(Channel *channel, char mod, bool addOrRemove);
+        Client*  getClient(int fd);
+        Client*  getClientByNick(const std::string& nick);
+        Channel* getChannel(const std::string& name);
+        const std::string&  getPassword() const;
 };
 #endif
