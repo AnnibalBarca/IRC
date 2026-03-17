@@ -1,11 +1,13 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+
 bool isWrongNameChar(char nameChar)
 {
     if (nameChar == ' ' || nameChar == '\a' || nameChar == '\007' || nameChar == ':' || nameChar == ',')
         return false;
     return true;
 }
+
 bool isValidChanName(std::string chanName)
 {
     if (chanName.empty() || chanName.size() < 2 || chanName.size() > MAX_CHANNELNAME_SIZE)
@@ -19,6 +21,7 @@ bool isValidChanName(std::string chanName)
     }
     return true;
 }
+
 void Server::cmdJoin(const std::string &args, int fd)
 {
     Client *sender = getClient(fd);

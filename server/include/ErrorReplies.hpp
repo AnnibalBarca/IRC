@@ -17,4 +17,5 @@ namespace ErrorReply
     void sendInviteOnlyChan(int fd, const std::string &user, const std::string &chanName);
     void sendBadChannelKey(int fd, const std::string &user, const std::string &chanName);
     void sendUnknownModeChar(int fd, const std::string &user, char mode);
+    void sendNickNameInUse(int fd, const std::string &user, const std::string &nickName);
 }

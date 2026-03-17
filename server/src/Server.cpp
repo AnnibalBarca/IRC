@@ -2,14 +2,18 @@
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
 #include <cstdlib>
+
 bool Server::_signal = false;
+
 Server::Server() : _port(0)
 {
 }
+
 Server::~Server()
 {
     closeFds();
 }
+
 void Server::serverInit(int port, const std::string &password)
 {
     _port = port;
@@ -23,6 +27,7 @@ void Server::serverInit(int port, const std::string &password)
     closeFds();
     std::cout << "Server shut down." << std::endl;
 }
+
 void Server::serverSocket()
 {
     _socket.create();
@@ -36,6 +41,7 @@ void Server::serverSocket()
     pfd.revents = 0;
     _pollFds.push_back(pfd);
 }
+
 void Server::run()
 {
     while (!_signal)
@@ -74,6 +80,7 @@ void Server::run()
         }
     }
 }
+
 void Server::newClient()
 {
     struct sockaddr_in client_addr;
@@ -98,6 +105,7 @@ void Server::newClient()
     std::cout << "Client <" << client_fd << "> connected from "
               << inet_ntoa(client_addr.sin_addr) << std::endl;
 }
+
 void Server::receiveData(int fd)
 {
     char buf[512];
@@ -146,12 +154,14 @@ void Server::receiveData(int fd)
         break;
     }
 }
+
 void Server::signalHandler(int sigNum)
 {
     (void)sigNum;
     std::cout << "\nSignal received – shutting down." << std::endl;
     _signal = true;
 }
+
 void Server::closeFds()
 {
     for (size_t i = 0; i < _clients.size(); i++)
@@ -179,7 +189,7 @@ void Server::clearClients(int fd)
             break;
         }
     }
-    for (size_t i = 0; i < _channels.size(); )
+    for (size_t i = 0; i < _channels.size();)
     {
         if (_channels[i].isEmpty())
             _channels.erase(_channels.begin() + i);
@@ -187,10 +197,12 @@ void Server::clearClients(int fd)
             i++;
     }
 }
+
 const std::string &Server::getPassword() const
 {
     return _password;
 }
+
 void Server::parseCommands(const std::string &cmd, int fd)
 {
     if (cmd.empty())

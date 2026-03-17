@@ -14,22 +14,22 @@ void Server::cmdNick(const std::string &args, int fd)
         ErrorReply::sendNeedMoreParams(fd, user, "NICK");
         return;
     }
-    if (nickName.empty() || nickName.length() > MAX_NICKNAME_SIZE)
+    if (nickName.empty() || nickName.size() > MAX_NICKNAME_SIZE)
     {
         ErrorReply::sendNeedMoreParams(fd, user, "NICK");
         return;
     }
-    if ()
-    Client *client = getClientByNick(nickName);
-    if (client.getNick() == nickName)
+    for (int idx = 0; idx < nickName.size(); idx++)
     {
+        if (!isWrongNameChar())
+    }
+
+    Client *client = getClientByNick(nickName);
+    if (client->getNick() == nickName)
+    {
+        ErrorReply::sendNickNameInUse(fd, user, nickName);
         return;
     }
     
     sender->setNick(nickName);
-}
-
-bool isValidNickNameCharacter(char c)
-{
-    
 }

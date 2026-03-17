@@ -67,8 +67,9 @@ namespace ErrorReply
     {
         sendReply(fd, "472 " + user + " " + std::string(1, mode) + ERR_UNKNOWNMODE);
     }
-    void sendNickNameInUse(int fd, const std::string &user)
+    void sendNickNameInUse(int fd, const std::string &user, const std::string &nickName)
     {
-        sendReply(fd, "433 " + user + ERR_NICKNAMEINUSE);
+        sendReply(fd, "433 " + user + " " + nickName + ERR_NICKNAMEINUSE);
     }
+
 }
