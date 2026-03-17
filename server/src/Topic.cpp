@@ -51,7 +51,7 @@ void Server::cmdTopic(const std::string &args, int fd)
     if (initTopic[0] == ':')
         initTopic.erase(0, 1);
     channel->setTopic(initTopic);
-    std::string topicMsg = ":" + user + " TOPIC " + chanName + " :" + initTopic + "\r\n";
+    std::string topicMsg = " TOPIC " + chanName + " :" + initTopic;
     channel->broadcast(*sender, topicMsg, _clients);
     SuccessReply::sendTopicUpdated(fd, user, chanName);
 }

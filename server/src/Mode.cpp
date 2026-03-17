@@ -114,7 +114,7 @@ void Server::cmdMode(const std::string &args, int fd)
     }
     if (!finalModes.empty())
     {
-        std::string msg = ":" + sender->getNick() + " MODE " + chanName + " " + finalModes + finalParams + "\r\n";
+        std::string msg = " MODE " + chanName + " " + finalModes + finalParams;
         channel->broadcast(*sender, msg, _clients);
         SuccessReply::sendModeUpdated(fd, user, chanName, finalModes + finalParams);
     }
