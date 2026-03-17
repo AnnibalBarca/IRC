@@ -5,7 +5,10 @@
 #include <sys/socket.h>
 #include <cerrno>
 #include <ctime>
-#define MAXUSERNAMESIZE
+
+#define MAX_USERNAME_SIZE 10
+#define MAX_NICKNAME_SIZE 10
+
 class Channel;
 class Client
 {

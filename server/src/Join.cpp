@@ -8,7 +8,7 @@ bool isWrongNameChar(char nameChar)
 }
 bool isValidChanName(std::string chanName)
 {
-    if (chanName.empty() || chanName.size() < 2 || chanName.size() > MAXCHANNELNAMESIZE)
+    if (chanName.empty() || chanName.size() < 2 || chanName.size() > MAX_CHANNELNAME_SIZE)
         return false;
     if (chanName[0] != '#')
         return false;
@@ -24,17 +24,17 @@ void Server::cmdJoin(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
+    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
     std::istringstream iss(args);
     std::string chanName, keyName;
     if (!(iss >> chanName))
     {
-        ErrorReply::sendNeedMoreParams(fd, nick, "JOIN");
+        ErrorReply::sendNeedMoreParams(fd, user, "JOIN");
         return;
     }
     if (!isValidChanName(chanName))
     {
-        ErrorReply::sendNoSuchChannel(fd, nick, chanName);
+        ErrorReply::sendNoSuchChannel(fd, user, chanName);
         return;
     }
     for (size_t idx = 0; idx < chanName.length(); idx++)
@@ -50,11 +50,11 @@ void Server::cmdJoin(const std::string &args, int fd)
         std::string joinMsg = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost() + " JOIN " + channel->getName() + "\r\n";
         sender->forward(joinMsg);
         channel->broadcast(*sender, " JOIN " + channel->getName(), _clients);
-        std::string topicMsg = "331 " + nick + " " + chanName + " :No topic is set\r\n";
+        std::string topicMsg = "331 " + user + " " + chanName + " :No topic is set\r\n";
         send(fd, topicMsg.c_str(), topicMsg.size(), 0);
-        std::string namesMsg = "353 " + nick + " = " + chanName + " :" + sender->getNick() + "\r\n";
+        std::string namesMsg = "353 " + user + " = " + chanName + " :" + sender->getNick() + "\r\n";
         send(fd, namesMsg.c_str(), namesMsg.size(), 0);
-        std::string endNamesMsg = "366 " + nick + " " + chanName + " :End of NAMES list\r\n";
+        std::string endNamesMsg = "366 " + user + " " + chanName + " :End of NAMES list\r\n";
         send(fd, endNamesMsg.c_str(), endNamesMsg.size(), 0);
         return;
     }
@@ -66,7 +66,7 @@ void Server::cmdJoin(const std::string &args, int fd)
         {
             if (channel->getPasswd() != keyName)
             {
-                ErrorReply::sendBadChannelKey(fd, nick, chanName);
+                ErrorReply::sendBadChannelKey(fd, user, chanName);
                 return;
             }
         }
@@ -75,18 +75,18 @@ void Server::cmdJoin(const std::string &args, int fd)
     {
         if (!channel->getPasswd().empty())
         {
-            ErrorReply::sendBadChannelKey(fd, nick, chanName);
+            ErrorReply::sendBadChannelKey(fd, user, chanName);
             return;
         }
     }
     if (channel->getLimit() != 0 && channel->getClientFds().size() >= channel->getLimit())
     {
-        ErrorReply::sendChannelIsFull(fd, nick, chanName);
+        ErrorReply::sendChannelIsFull(fd, user, chanName);
         return;
     }
     if (channel->isMode('i') && !channel->isInvited(*sender))
     {
-        ErrorReply::sendInviteOnlyChan(fd, nick, chanName);
+        ErrorReply::sendInviteOnlyChan(fd, user, chanName);
         return;
     }
     channel->addClient(*sender);
@@ -96,16 +96,16 @@ void Server::cmdJoin(const std::string &args, int fd)
     channel->broadcast(*sender, " JOIN " + channel->getName(), _clients);
     if (channel->getTopic().empty())
     {
-        std::string topicMsg = "331 " + nick + " " + chanName + " :No topic is set\r\n";
+        std::string topicMsg = "331 " + user + " " + chanName + " :No topic is set\r\n";
         send(fd, topicMsg.c_str(), topicMsg.size(), 0);
     }
     else
     {
-        std::string topicMsg = "332 " + nick + " " + chanName + " :" + channel->getTopic() + "\r\n";
+        std::string topicMsg = "332 " + user + " " + chanName + " :" + channel->getTopic() + "\r\n";
         send(fd, topicMsg.c_str(), topicMsg.size(), 0);
     }
     std::vector<int> &clientFds = channel->getClientFds();
-    std::string namesMsg = "353 " + nick + " = " + chanName + " :";
+    std::string namesMsg = "353 " + user + " = " + chanName + " :";
     for (size_t i = 0; i < clientFds.size(); i++)
     {
         Client *c = getClient(clientFds[i]);
@@ -120,6 +120,6 @@ void Server::cmdJoin(const std::string &args, int fd)
     }
     namesMsg += "\r\n";
     send(fd, namesMsg.c_str(), namesMsg.size(), 0);
-    std::string endNamesMsg = "366 " + nick + " " + chanName + " :End of NAMES list\r\n";
+    std::string endNamesMsg = "366 " + user + " " + chanName + " :End of NAMES list\r\n";
     send(fd, endNamesMsg.c_str(), endNamesMsg.size(), 0);
 }

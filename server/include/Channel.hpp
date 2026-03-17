@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "Client.hpp"
-#define MAXCHANNELNAMESIZE 10
+#define MAX_CHANNELNAME_SIZE 10
 class Channel
 {
 private:

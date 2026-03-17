@@ -6,12 +6,12 @@ void Server::cmdKick(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
+    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
     std::istringstream iss(args);
     std::string chanName, targetNick, reason;
     if (!(iss >> chanName >> targetNick))
     {
-        ErrorReply::sendNeedMoreParams(fd, nick, "KICK");
+        ErrorReply::sendNeedMoreParams(fd, user, "KICK");
         return;
     }
     std::getline(iss, reason);
@@ -20,32 +20,32 @@ void Server::cmdKick(const std::string &args, int fd)
     if (!reason.empty() && reason[0] == ':')
         reason.erase(0, 1);
     if (reason.empty())
-        reason = nick;
+        reason = user;
     Channel *channel = getChannel(chanName);
     if (!channel)
     {
-        ErrorReply::sendNoSuchChannel(fd, nick, chanName);
+        ErrorReply::sendNoSuchChannel(fd, user, chanName);
         return;
     }
     if (!channel->isClient(*sender))
     {
-        ErrorReply::sendNotOnChannel(fd, nick, chanName);
+        ErrorReply::sendNotOnChannel(fd, user, chanName);
         return;
     }
     if (!channel->isOp(*sender))
     {
-        ErrorReply::sendChanOpPrivsNeeded(fd, nick, chanName);
+        ErrorReply::sendChanOpPrivsNeeded(fd, user, chanName);
         return;
     }
     Client *target = getClientByNick(targetNick);
     if (!target)
     {
-        ErrorReply::sendNoSuchNick(fd, nick, targetNick);
+        ErrorReply::sendNoSuchNick(fd, user, targetNick);
         return;
     }
     if (!channel->isClient(*target))
     {
-        ErrorReply::sendUserNotInChannel(fd, nick, targetNick, chanName);
+        ErrorReply::sendUserNotInChannel(fd, user, targetNick, chanName);
         return;
     }
     std::string kickMsg = " KICK " + chanName + " " + targetNick + " :" + reason;

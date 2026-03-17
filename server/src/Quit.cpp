@@ -5,12 +5,12 @@ void Server::cmdQuit(const std::string &args, int fd)
 	Client *client = getClient(fd);
 	if (!client)
 		return;
+	std::string user = client->getUser().empty() ? "*" : client->getUser();
 	std::istringstream iss(args);
 	std::string extra;
 	if (iss >> extra)
 	{
-		std::string nick = client->getNick().empty() ? "*" : client->getNick();
-		ErrorReply::sendNeedMoreParams(fd, nick, "QUIT");
+		ErrorReply::sendNeedMoreParams(fd, user, "QUIT");
 		return;
 	}
 	client->setAuth(false);

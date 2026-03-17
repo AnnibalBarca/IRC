@@ -54,11 +54,11 @@ public:
     void    cmdQuit(const std::string &args, int fd);
     bool    modeI(Channel *channel, bool adding);
     bool    modeT(Channel *channel, bool adding);
-    bool    modeK(Channel *channel, const std::string &nick, bool adding,
+    bool    modeK(Channel *channel, const std::string &user, bool adding,
                   size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    bool    modeO(Channel *channel, const std::string &nick, const std::string &chanName, bool adding,
+    bool    modeO(Channel *channel, const std::string &user, const std::string &chanName, bool adding,
                   size_t &paramIdx, const std::vector<std::string> &params, int fd);
-    bool    modeL(Channel *channel, const std::string &nick, bool adding,
+    bool    modeL(Channel *channel, const std::string &user, bool adding,
                   size_t &paramIdx, const std::vector<std::string> &params, int fd);
     void    modeHandling(Channel *channel, char mod, bool addOrRemove);
     Client*  getClient(int fd);

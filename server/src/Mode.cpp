@@ -13,38 +13,38 @@ void Server::cmdMode(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string nick = nickOr(sender);
+    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
     std::istringstream iss(args);
     std::string chanName, modeStr;
     if (!(iss >> chanName))
     {
-        ErrorReply::sendNeedMoreParams(fd, nick, "MODE");
+        ErrorReply::sendNeedMoreParams(fd, user, "MODE");
         return;
     }
     Channel *channel = getChannel(chanName);
     if (!channel)
     {
-        ErrorReply::sendNoSuchChannel(fd, nick, chanName);
+        ErrorReply::sendNoSuchChannel(fd, user, chanName);
         return;
     }
     if (!(iss >> modeStr))
     {
-        std::string rpl324 = "324 " + nick + " " + chanName + " +" + channel->getModes() + "\r\n";
+        std::string rpl324 = "324 " + user + " " + chanName + " +" + channel->getModes() + "\r\n";
         send(fd, rpl324.c_str(), rpl324.size(), 0);
         std::stringstream ss;
         ss << channel->getCreationTime();
-        std::string rpl329 = "329 " + nick + " " + chanName + " " + ss.str() + "\r\n";
+        std::string rpl329 = "329 " + user + " " + chanName + " " + ss.str() + "\r\n";
         send(fd, rpl329.c_str(), rpl329.size(), 0);
         return;
     }
     if (!channel->isClient(*sender))
     {
-        ErrorReply::sendNotOnChannel(fd, nick, chanName);
+        ErrorReply::sendNotOnChannel(fd, user, chanName);
         return;
     }
     if (!channel->isOp(*sender))
     {
-        ErrorReply::sendChanOpPrivsNeeded(fd, nick, chanName);
+        ErrorReply::sendChanOpPrivsNeeded(fd, user, chanName);
         return;
     }
     std::vector<std::string> params;
@@ -78,17 +78,17 @@ void Server::cmdMode(const std::string &args, int fd)
                 success = modeT(channel, adding);
                 break;
             case 'k':
-                success = modeK(channel, nick, adding, paramIdx, params, fd);
+                success = modeK(channel, user, adding, paramIdx, params, fd);
                 break;
             case 'o':
-                success = modeO(channel, nick, chanName, adding, paramIdx, params, fd);
+                success = modeO(channel, user, chanName, adding, paramIdx, params, fd);
                 break;
             case 'l':
-                success = modeL(channel, nick, adding, paramIdx, params, fd);
+                success = modeL(channel, user, adding, paramIdx, params, fd);
                 break;
             default:
                 if (std::isalpha((unsigned char)c))
-                    ErrorReply::sendUnknownModeChar(fd, nick, c);
+                    ErrorReply::sendUnknownModeChar(fd, user, c);
                 continue;
         }
         if (success)
@@ -118,7 +118,7 @@ void Server::cmdMode(const std::string &args, int fd)
     }
     if (!finalModes.empty())
     {
-        std::string msg = ":" + nick + " MODE " + chanName + " " + finalModes + finalParams + "\r\n";
+        std::string msg = ":" + sender->getNick() + " MODE " + chanName + " " + finalModes + finalParams + "\r\n";
         channel->broadcast(*sender, msg, _clients);
     }
 }
@@ -150,14 +150,14 @@ bool Server::modeT(Channel *channel, bool adding)
     modeHandling(channel, 't', false);
     return true;
 }
-bool Server::modeK(Channel *channel, const std::string &nick, bool adding,
+bool Server::modeK(Channel *channel, const std::string &user, bool adding,
                    size_t &paramIdx, const std::vector<std::string> &params, int fd)
 {
     if (adding)
     {
         if (paramIdx >= params.size())
         {
-            ErrorReply::sendNeedMoreParams(fd, nick, "MODE");
+            ErrorReply::sendNeedMoreParams(fd, user, "MODE");
             return false;
         }
         std::string key = params[paramIdx++];
@@ -171,24 +171,24 @@ bool Server::modeK(Channel *channel, const std::string &nick, bool adding,
     modeHandling(channel, 'k', false);
     return true;
 }
-bool Server::modeO(Channel *channel, const std::string &nick, const std::string &chanName, bool adding,
+bool Server::modeO(Channel *channel, const std::string &user, const std::string &chanName, bool adding,
                    size_t &paramIdx, const std::vector<std::string> &params, int fd)
 {
     if (paramIdx >= params.size())
     {
-        ErrorReply::sendNeedMoreParams(fd, nick, "MODE");
+        ErrorReply::sendNeedMoreParams(fd, user, "MODE");
         return false;
     }
     std::string targetNick = params[paramIdx++];
     Client *target = getClientByNick(targetNick);
     if (!target)
     {
-        ErrorReply::sendNoSuchNick(fd, nick, targetNick);
+        ErrorReply::sendNoSuchNick(fd, user, targetNick);
         return false;
     }
     if (!channel->isClient(*target))
     {
-        ErrorReply::sendUserNotInChannel(fd, nick, targetNick, chanName);
+        ErrorReply::sendUserNotInChannel(fd, user, targetNick, chanName);
         return false;
     }
     if (adding)
@@ -203,14 +203,14 @@ bool Server::modeO(Channel *channel, const std::string &nick, const std::string 
     channel->removeOp(*target);
     return true;
 }
-bool Server::modeL(Channel *channel, const std::string &nick, bool adding,
+bool Server::modeL(Channel *channel, const std::string &user, bool adding,
                    size_t &paramIdx, const std::vector<std::string> &params, int fd)
 {
     if (adding)
     {
         if (paramIdx >= params.size())
         {
-            ErrorReply::sendNeedMoreParams(fd, nick, "MODE");
+            ErrorReply::sendNeedMoreParams(fd, user, "MODE");
             return false;
         }
         const std::string &limitParam = params[paramIdx++];
