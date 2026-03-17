@@ -2,11 +2,11 @@
 #include "ErrorReplies.hpp"
 #include "SuccessReplies.hpp"
 
-static bool isWrongNameChar(const char nameChar)
+static bool isInvalidChanChar(const char nameChar)
 {
     if (nameChar == ' ' || nameChar == '\a' || nameChar == '\007' || nameChar == ':' || nameChar == ',')
-        return false;
-    return true;
+        return true;
+    return false;
 }
 
 static bool isValidChanName(std::string chanName)
@@ -17,7 +17,7 @@ static bool isValidChanName(std::string chanName)
         return false;
     for (size_t idx = 1; idx < chanName.length(); idx++)
     {
-        if (!isWrongNameChar(chanName[idx]))
+        if (isInvalidChanChar(chanName[idx]))
             return false;
     }
     return true;
@@ -36,6 +36,11 @@ void Server::cmdJoin(const std::string &args, int fd)
         ErrorReply::sendNeedMoreParams(fd, user, "JOIN");
         return;
     }
+    if (!chanName.empty() && chanName[0] == ':')
+        chanName.erase(0, 1);
+    size_t commaPos = chanName.find(',');
+    if (commaPos != std::string::npos)
+        chanName = chanName.substr(0, commaPos);
     if (!isValidChanName(chanName))
     {
         ErrorReply::sendNoSuchChannel(fd, user, chanName);
