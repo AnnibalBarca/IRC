@@ -1,6 +1,8 @@
 #include "Channel.hpp"
 #include <algorithm>
+
 Channel::Channel() : name(""), topic(""), passwd(""), limit(0), createdTime(std::time(NULL)) {}
+
 Channel::Channel(std::string name, Client &owner)
     : name(name), topic(""), passwd(""), limit(0), createdTime(std::time(NULL))
 {
@@ -8,23 +10,35 @@ Channel::Channel(std::string name, Client &owner)
     this->opFds.push_back(owner.getFd());
     this->modes.push_back('t');
 }
+
 Channel::~Channel() {}
+
 std::string Channel::getName()
 {
     return this->name;
 }
+
 std::string Channel::getTopic()
 {
     return this->topic;
 }
+
 void Channel::setTopic(std::string topic) { this->topic = topic; }
+
 std::string Channel::getPasswd() { return this->passwd; }
+
 void Channel::setPasswd(std::string passwd) { this->passwd = passwd; }
+
 size_t Channel::getLimit() { return this->limit; }
+
 void Channel::setLimit(size_t limit) { this->limit = limit; }
+
 std::vector<int> &Channel::getClientFds() { return this->clientFds; }
+
 std::vector<int> &Channel::getOpFds() { return this->opFds; }
+
 bool Channel::isEmpty() { return this->clientFds.empty(); }
+
 bool Channel::isClient(Client &c)
 {
     for (size_t i = 0; i < clientFds.size(); i++)
@@ -32,6 +46,7 @@ bool Channel::isClient(Client &c)
             return true;
     return false;
 }
+
 void Channel::addClient(Client &c)
 {
     if (limit > 0 && clientFds.size() >= limit)
@@ -42,6 +57,7 @@ void Channel::addClient(Client &c)
     if (!isClient(c))
         clientFds.push_back(c.getFd());
 }
+
 void Channel::removeClient(Client &c)
 {
     for (std::vector<int>::iterator it = clientFds.begin(); it != clientFds.end(); ++it)
@@ -51,6 +67,7 @@ void Channel::removeClient(Client &c)
             break;
         }
 }
+
 bool Channel::isOp(Client &op)
 {
     for (size_t i = 0; i < opFds.size(); i++)
@@ -58,11 +75,13 @@ bool Channel::isOp(Client &op)
             return true;
     return false;
 }
+
 void Channel::addOp(Client &op)
 {
     if (!isOp(op))
         opFds.push_back(op.getFd());
 }
+
 void Channel::removeOp(Client &op)
 {
     for (std::vector<int>::iterator it = opFds.begin(); it != opFds.end(); ++it)
@@ -72,6 +91,7 @@ void Channel::removeOp(Client &op)
             break;
         }
 }
+
 bool Channel::isInvited(Client &c)
 {
     for (size_t i = 0; i < invitedFds.size(); i++)
@@ -79,11 +99,13 @@ bool Channel::isInvited(Client &c)
             return true;
     return false;
 }
+
 void Channel::addInvite(Client &c)
 {
     if (!isInvited(c))
         invitedFds.push_back(c.getFd());
 }
+
 void Channel::removeInvite(Client &c)
 {
     for (std::vector<int>::iterator it = invitedFds.begin(); it != invitedFds.end(); ++it)
@@ -93,6 +115,7 @@ void Channel::removeInvite(Client &c)
             break;
         }
 }
+
 void Channel::broadcastMsg(Client &sender, const std::string &msg, std::vector<Client> &allClients)
 {
     std::string full = ":" + sender.getNick() + "!" + sender.getUser() + "@" + sender.getHost() + msg + "\r\n";
@@ -105,6 +128,7 @@ void Channel::broadcastMsg(Client &sender, const std::string &msg, std::vector<C
                 allClients[j].forward(full);
     }
 }
+
 void Channel::broadcast(Client &sender, const std::string &msg, std::vector<Client> &allClients)
 {
     std::string full = ":" + sender.getNick() + "!" + sender.getUser() + "@" + sender.getHost() + msg + "\r\n";
@@ -113,6 +137,7 @@ void Channel::broadcast(Client &sender, const std::string &msg, std::vector<Clie
             if (allClients[j].getFd() == clientFds[i])
                 allClients[j].forward(full);
 }
+
 bool Channel::isMode(char mode)
 {
     for (size_t i = 0; i < modes.size(); i++)
@@ -120,11 +145,13 @@ bool Channel::isMode(char mode)
             return true;
     return false;
 }
+
 void Channel::addMode(char mode)
 {
     if (!isMode(mode))
         modes.push_back(mode);
 }
+
 void Channel::removeMode(char mode)
 {
     for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
@@ -134,6 +161,7 @@ void Channel::removeMode(char mode)
             break;
         }
 }
+
 std::string Channel::getModes()
 {
     std::string result = "+";
@@ -141,6 +169,7 @@ std::string Channel::getModes()
         result += modes[i];
     return result;
 }
+
 std::time_t Channel::getCreationTime() const
 {
     return this->createdTime;

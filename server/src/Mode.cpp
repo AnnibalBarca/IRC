@@ -2,12 +2,14 @@
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
 #include <cstdlib>
+
 static std::string nickOr(Client *c)
 {
     if (!c || c->getNick().empty())
         return "*";
     return c->getNick();
 }
+
 void Server::cmdMode(const std::string &args, int fd)
 {
     Client *sender = getClient(fd);
@@ -122,6 +124,7 @@ void Server::cmdMode(const std::string &args, int fd)
         channel->broadcast(*sender, msg, _clients);
     }
 }
+
 bool Server::modeI(Channel *channel, bool adding)
 {
     if (adding)
@@ -136,6 +139,7 @@ bool Server::modeI(Channel *channel, bool adding)
     modeHandling(channel, 'i', false);
     return true;
 }
+
 bool Server::modeT(Channel *channel, bool adding)
 {
     if (adding)
@@ -150,6 +154,7 @@ bool Server::modeT(Channel *channel, bool adding)
     modeHandling(channel, 't', false);
     return true;
 }
+
 bool Server::modeK(Channel *channel, const std::string &user, bool adding,
                    size_t &paramIdx, const std::vector<std::string> &params, int fd)
 {
@@ -171,6 +176,7 @@ bool Server::modeK(Channel *channel, const std::string &user, bool adding,
     modeHandling(channel, 'k', false);
     return true;
 }
+
 bool Server::modeO(Channel *channel, const std::string &user, const std::string &chanName, bool adding,
                    size_t &paramIdx, const std::vector<std::string> &params, int fd)
 {
@@ -203,6 +209,7 @@ bool Server::modeO(Channel *channel, const std::string &user, const std::string 
     channel->removeOp(*target);
     return true;
 }
+
 bool Server::modeL(Channel *channel, const std::string &user, bool adding,
                    size_t &paramIdx, const std::vector<std::string> &params, int fd)
 {
@@ -228,6 +235,7 @@ bool Server::modeL(Channel *channel, const std::string &user, bool adding,
     modeHandling(channel, 'l', false);
     return true;
 }
+
 void Server::modeHandling(Channel *channel, char mod, bool addOrRemove)
 {
     if (!(mod == 'i' || mod == 'k' || mod == 'l' || mod == 'o' || mod == 't'))

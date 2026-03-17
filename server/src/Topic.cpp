@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
+
 void Server::cmdTopic(const std::string &args, int fd)
 {
     Client *sender = getClient(fd);

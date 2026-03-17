@@ -170,6 +170,7 @@ void Server::closeFds()
     _pollFds.clear();
     _socket.closeSocket();
 }
+
 void Server::clearClients(int fd)
 {
     for (size_t i = 0; i < _pollFds.size(); i++)
@@ -240,6 +241,7 @@ void Server::parseCommands(const std::string &cmd, int fd)
         }
     }
 }
+
 Client *Server::getClient(int fd)
 {
     for (size_t i = 0; i < _clients.size(); i++)
@@ -249,6 +251,7 @@ Client *Server::getClient(int fd)
     }
     return NULL;
 }
+
 Client *Server::getClientByNick(const std::string &nick)
 {
     for (size_t i = 0; i < _clients.size(); i++)
@@ -258,6 +261,7 @@ Client *Server::getClientByNick(const std::string &nick)
     }
     return NULL;
 }
+
 Channel *Server::getChannel(const std::string &name)
 {
     for (size_t i = 0; i < _channels.size(); i++)

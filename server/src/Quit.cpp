@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+
 void Server::cmdQuit(const std::string &args, int fd)
 {
 	Client *client = getClient(fd);
