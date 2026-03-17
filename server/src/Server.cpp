@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "Channel.hpp"
+#include <cstdlib>
 
 bool Server::_signal = false;
 
@@ -582,27 +583,159 @@ void Server::cmdNick(const std::string &args, int fd)   { (void)args; (void)fd; 
 void Server::cmdUser(const std::string &args, int fd)   { (void)args; (void)fd; }
 void Server::cmdJoin(const std::string &args, int fd)   { (void)args; (void)fd; }
 
-
-// --To get a client by fd: getClient(fd)
-// --by Nickname : getClientByNick(Nick)
-// --To get a channel: getChannel(name)
-// ---- For Channel membership tests :
-// --------if (!chan->isClient(*sender))
-// --------if (!chan->isClient(*target))
-// --------if (!chan->isOp(*sender))
-// --------if (chan->isMode('i') && !chan->isInvited(*sender)) = Channel is invite-only and user not invited
-// ---- For Chennel mutation :
-// --------setters from Channel.hpp
-//
-
-void Server::modeHandling(Channel *channel, char mod, bool addOrRemove)
+bool Server::modeI(Channel *channel, const std::string &nick, const std::string &chanName, bool adding, int fd)
 {
-    if (!(mod == 'i' || mod == 'k' || mod == 'l' || mod == 'o' || mod == 't'))
-        return ;
-    if (addOrRemove == true)
-        channel->addMode(mod);
+    (void)nick;
+    (void)chanName;
+    (void)fd;
+
+    if (adding)
+    {
+        if (channel->isMode('i'))
+            return false;
+        channel->addMode('i');
+    }
     else
-        channel->removeMode(mod);
+    {
+        if (!channel->isMode('i'))
+            return false;
+        channel->removeMode('i');
+    }
+    return true;
+}
+
+// --- MODE t: Set/remove restrictions of TOPIC to ops (no argument) ---
+bool Server::modeT(Channel *channel, const std::string &nick, const std::string &chanName, bool adding, int fd)
+{
+    (void)nick;
+    (void)chanName;
+    (void)fd;
+
+    if (adding)
+    {
+        if (channel->isMode('t'))
+            return false;
+        channel->addMode('t');
+    }
+    else
+    {
+        if (!channel->isMode('t'))
+            return false;
+        channel->removeMode('t');
+    }
+    return true;
+}
+
+// --- MODE k: Set/remove channel key/password ---
+// +k requires password argument, -k no argument
+bool Server::modeK(Channel *channel, const std::string &nick, const std::string &, 
+                   bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd)
+{
+    if (adding)
+    {
+        if (paramIdx >= params.size())
+        {
+            std::string err = "461 " + nick + " MODE" + ERR_NEEDMOREPARAMS;
+            send(fd, err.c_str(), err.size(), 0);
+            return false;
+        }
+        if (channel->isMode('k'))
+            return false;
+        std::string password = params[paramIdx++];
+        channel->setPasswd(password);
+        channel->addMode('k');
+        return true;
+    }
+    else
+    {
+        if (!channel->isMode('k'))
+            return false;
+        channel->setPasswd("");
+        channel->removeMode('k');
+        return true;
+    }
+}
+
+// --- MODE o: Give/take channel operator privilege ---
+// Both +o and -o require nickname argument
+bool Server::modeO(Channel *channel, const std::string &nick, const std::string &chanName, 
+                   bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd)
+{
+    if (paramIdx >= params.size())
+    {
+        std::string err = "461 " + nick + " MODE" + ERR_NEEDMOREPARAMS;
+        send(fd, err.c_str(), err.size(), 0);
+        return false;
+    }
+
+    std::string targetNick = params[paramIdx++];
+    Client *target = getClientByNick(targetNick);
+
+    if (!target)
+    {
+        std::string err = "401 " + nick + " " + targetNick + ERR_NOSUCHNICK;
+        send(fd, err.c_str(), err.size(), 0);
+        return false;
+    }
+
+    if (!channel->isClient(*target))
+    {
+        std::string err = "441 " + nick + " " + targetNick + " " + chanName + ERR_USERNOTINCHANNEL;
+        send(fd, err.c_str(), err.size(), 0);
+        return false;
+    }
+
+    if (adding)
+    {
+        if (channel->isOp(*target))
+            return false;
+        channel->addOp(*target);
+    }
+    else
+    {
+        if (!channel->isOp(*target))
+            return false;
+        channel->removeOp(*target);
+    }
+
+    return true;
+}
+
+// --- MODE l: Set/remove user limit to channel ---
+// +l requires numeric limit argument, -l no argument
+bool Server::modeL(Channel *channel, const std::string &nick, const std::string &, 
+                   bool adding, size_t &paramIdx, const std::vector<std::string> &params, int fd)
+{
+    if (adding)
+    {
+        if (paramIdx >= params.size())
+        {
+            std::string err = "461 " + nick + " MODE" + ERR_NEEDMOREPARAMS;
+            send(fd, err.c_str(), err.size(), 0);
+            return false;
+        }
+
+        std::string limitStr = params[paramIdx++];
+        int limit = atoi(limitStr.c_str());
+
+        if (limit <= 0)
+            return false;
+
+        if (channel->isMode('l') && channel->getLimit() == (size_t)limit)
+            return false;
+
+        channel->setLimit((size_t)limit);
+        channel->addMode('l');
+        return true;
+    }
+    else
+    {
+        if (!channel->isMode('l'))
+            return false;
+        channel->setLimit(0);
+        channel->removeMode('l');
+        return true;
+    }
 }
 
 
