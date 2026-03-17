@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 void Server::cmdTopic(const std::string &args, int fd)
 {
@@ -52,4 +53,5 @@ void Server::cmdTopic(const std::string &args, int fd)
     channel->setTopic(initTopic);
     std::string topicMsg = ":" + user + " TOPIC " + chanName + " :" + initTopic + "\r\n";
     channel->broadcast(*sender, topicMsg, _clients);
+    SuccessReply::sendTopicUpdated(fd, user, chanName);
 }

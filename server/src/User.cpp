@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 void Server::cmdUser(const std::string &args, int fd)
 {
@@ -39,4 +40,11 @@ void Server::cmdUser(const std::string &args, int fd)
         return;
     }
     sender->setUser(userName);
+    SuccessReply::sendUserSet(fd, sender->getUser());
+    if (sender->isRegistered() && !sender->isWelcomed())
+    {
+        sender->setWelcomed(true);
+        std::string welcomeMsg = ":irc 001 " + sender->getNick() + " :Welcome to the Internet Relay Network\r\n";
+        send(fd, welcomeMsg.c_str(), welcomeMsg.size(), 0);
+    }
 }

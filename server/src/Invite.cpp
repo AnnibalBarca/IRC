@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 void Server::cmdInvite(const std::string &args, int fd)
 {
@@ -47,4 +48,5 @@ void Server::cmdInvite(const std::string &args, int fd)
     send(fd, rpl.c_str(), rpl.size(), 0);
     std::string inviteMsg = ":" + user + " INVITE " + targetNick + " " + chanName + "\r\n";
     send(target->getFd(), inviteMsg.c_str(), inviteMsg.size(), 0);
+    SuccessReply::sendInviteConfirmed(fd, user, targetNick, chanName);
 }

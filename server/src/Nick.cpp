@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 static bool isWrongNameChar(const char c)
 {
@@ -40,7 +41,9 @@ void Server::cmdNick(const std::string &args, int fd)
         ErrorReply::sendNickNameInUse(fd, user, nickName);
         return;
     }
+    std::string oldNick = sender->getNick();
     sender->setNick(nickName);
+    SuccessReply::sendNickChanged(fd, oldNick, nickName);
     if (sender->isRegistered() && !sender->isWelcomed())
     {
         sender->setWelcomed(true);

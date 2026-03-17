@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 #include <cstdlib>
 
 void Server::cmdMode(const std::string &args, int fd)
@@ -115,6 +116,7 @@ void Server::cmdMode(const std::string &args, int fd)
     {
         std::string msg = ":" + sender->getNick() + " MODE " + chanName + " " + finalModes + finalParams + "\r\n";
         channel->broadcast(*sender, msg, _clients);
+        SuccessReply::sendModeUpdated(fd, user, chanName, finalModes + finalParams);
     }
 }
 

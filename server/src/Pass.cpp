@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 void Server::cmdPass(const std::string &args, int fd)
 {
@@ -27,4 +28,5 @@ void Server::cmdPass(const std::string &args, int fd)
         return;
     }
     client->setAuth(true);
+    SuccessReply::sendPassAccepted(fd, user);
 }

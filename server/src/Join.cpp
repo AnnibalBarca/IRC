@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 static bool isWrongNameChar(const char nameChar)
 {
@@ -59,6 +60,7 @@ void Server::cmdJoin(const std::string &args, int fd)
         send(fd, namesMsg.c_str(), namesMsg.size(), 0);
         std::string endNamesMsg = "366 " + user + " " + chanName + " :End of NAMES list\r\n";
         send(fd, endNamesMsg.c_str(), endNamesMsg.size(), 0);
+        SuccessReply::sendJoinConfirmed(fd, user, chanName);
         return;
     }
     if (channel->isClient(*sender))
@@ -125,4 +127,5 @@ void Server::cmdJoin(const std::string &args, int fd)
     send(fd, namesMsg.c_str(), namesMsg.size(), 0);
     std::string endNamesMsg = "366 " + user + " " + chanName + " :End of NAMES list\r\n";
     send(fd, endNamesMsg.c_str(), endNamesMsg.size(), 0);
+    SuccessReply::sendJoinConfirmed(fd, user, chanName);
 }

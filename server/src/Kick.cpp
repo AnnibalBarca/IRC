@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 void Server::cmdKick(const std::string &args, int fd)
 {
@@ -64,4 +65,5 @@ void Server::cmdKick(const std::string &args, int fd)
             }
         }
     }
+    SuccessReply::sendKickConfirmed(fd, user, targetNick, chanName);
 }

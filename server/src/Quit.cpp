@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
+#include "SuccessReplies.hpp"
 
 void Server::cmdQuit(const std::string &args, int fd)
 {
@@ -14,6 +15,7 @@ void Server::cmdQuit(const std::string &args, int fd)
 		ErrorReply::sendNeedMoreParams(fd, user, "QUIT");
 		return;
 	}
+	SuccessReply::sendQuitConfirmed(fd, user);
 	client->setAuth(false);
 	throw Client::disconnected;
 }

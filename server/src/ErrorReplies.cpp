@@ -91,11 +91,11 @@ namespace ErrorReply
 
     void sendNoNickNameGiven(int fd, const std::string &user)
     {
-        sendReply(fd, "431" + user + " " + ERR_NONICKNAMEGIVEN);
+        sendReply(fd, "431 " + user + " " + ERR_NONICKNAMEGIVEN);
     }
 
     void sendErroneusNickname(int fd, const std::string &user, const std::string &nickName)
     {
-        sendReply(fd, "432" + user + " " + nickName + ERR_ERRONEUSNICKNAME);
+        sendReply(fd, "432 " + user + " " + nickName + ERR_ERRONEUSNICKNAME);
     }
 }
