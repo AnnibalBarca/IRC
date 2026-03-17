@@ -237,8 +237,8 @@ void Server::parseCommands(const std::string &cmd, int fd)
         Client *client = getClient(fd);
         if (client)
         {
-            std::string user = client->getUser().empty() ? "*" : client->getUser();
-            ErrorReply::sendUnknownCommand(fd, user, command);
+            std::string nick = client->getNick().empty() ? "*" : client->getNick();
+            ErrorReply::sendUnknownCommand(fd, nick, command);
         }
     }
 }

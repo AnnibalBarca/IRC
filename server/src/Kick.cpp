@@ -8,12 +8,12 @@ void Server::cmdKick(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
+    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
     std::istringstream iss(args);
     std::string chanName, targetNick, reason;
     if (!(iss >> chanName >> targetNick))
     {
-        ErrorReply::sendNeedMoreParams(fd, user, "KICK");
+        ErrorReply::sendNeedMoreParams(fd, nick, "KICK");
         return;
     }
     std::getline(iss, reason);
@@ -22,32 +22,32 @@ void Server::cmdKick(const std::string &args, int fd)
     if (!reason.empty() && reason[0] == ':')
         reason.erase(0, 1);
     if (reason.empty())
-        reason = user;
+        reason = nick;
     Channel *channel = getChannel(chanName);
     if (!channel)
     {
-        ErrorReply::sendNoSuchChannel(fd, user, chanName);
+        ErrorReply::sendNoSuchChannel(fd, nick, chanName);
         return;
     }
     if (!channel->isClient(*sender))
     {
-        ErrorReply::sendNotOnChannel(fd, user, chanName);
+        ErrorReply::sendNotOnChannel(fd, nick, chanName);
         return;
     }
     if (!channel->isOp(*sender))
     {
-        ErrorReply::sendChanOpPrivsNeeded(fd, user, chanName);
+        ErrorReply::sendChanOpPrivsNeeded(fd, nick, chanName);
         return;
     }
     Client *target = getClientByNick(targetNick);
     if (!target)
     {
-        ErrorReply::sendNoSuchNick(fd, user, targetNick);
+        ErrorReply::sendNoSuchNick(fd, nick, targetNick);
         return;
     }
     if (!channel->isClient(*target))
     {
-        ErrorReply::sendUserNotInChannel(fd, user, targetNick, chanName);
+        ErrorReply::sendUserNotInChannel(fd, nick, targetNick, chanName);
         return;
     }
     std::string kickMsg = " KICK " + chanName + " " + targetNick + " :" + reason;
@@ -65,5 +65,5 @@ void Server::cmdKick(const std::string &args, int fd)
             }
         }
     }
-    SuccessReply::sendKickConfirmed(fd, user, targetNick, chanName);
+    SuccessReply::sendKickConfirmed(fd, nick, targetNick, chanName);
 }

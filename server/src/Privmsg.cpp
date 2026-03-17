@@ -20,12 +20,12 @@ void Server::cmdPrivMsg(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
+    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
     std::istringstream iss(args);
     std::string targets, messageText;
     if (!(iss >> targets))
     {
-        ErrorReply::sendNoRecipient(fd, user);
+        ErrorReply::sendNoRecipient(fd, nick);
         return;
     }
     std::getline(iss, messageText);
@@ -35,7 +35,7 @@ void Server::cmdPrivMsg(const std::string &args, int fd)
         messageText.erase(0, 1);
     if (messageText.empty())
     {
-        ErrorReply::sendNoTextToSend(fd, user);
+        ErrorReply::sendNoTextToSend(fd, nick);
         return;
     }
     std::stringstream ss(targets);
@@ -50,12 +50,12 @@ void Server::cmdPrivMsg(const std::string &args, int fd)
             Channel *channel = getChannel(chanName);
             if (!channel)
             {
-                ErrorReply::sendNoSuchChannel(fd, user, chanName);
+                ErrorReply::sendNoSuchChannel(fd, nick, chanName);
                 continue;
             }
             if (!channel->isClient(*sender))
             {
-                ErrorReply::sendCannotSendToChan(fd, user, chanName);
+                ErrorReply::sendCannotSendToChan(fd, nick, chanName);
                 continue;
             }
             channel->broadcastMsg(*sender, " PRIVMSG " + chanName + " :" + messageText, _clients);
@@ -65,7 +65,7 @@ void Server::cmdPrivMsg(const std::string &args, int fd)
             Client *dest = getClientByNick(target);
             if (!dest)
             {
-                ErrorReply::sendNoSuchNick(fd, user, target);
+                ErrorReply::sendNoSuchNick(fd, nick, target);
                 continue;
             }
             std::string full = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost()

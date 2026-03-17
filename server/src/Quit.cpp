@@ -7,15 +7,15 @@ void Server::cmdQuit(const std::string &args, int fd)
 	Client *client = getClient(fd);
 	if (!client)
 		return;
-	std::string user = client->getUser().empty() ? "*" : client->getUser();
+	std::string nick = client->getNick().empty() ? "*" : client->getNick();
 	std::istringstream iss(args);
 	std::string extra;
 	if (iss >> extra)
 	{
-		ErrorReply::sendNeedMoreParams(fd, user, "QUIT");
+		ErrorReply::sendNeedMoreParams(fd, nick, "QUIT");
 		return;
 	}
-	SuccessReply::sendQuitConfirmed(fd, user);
+	SuccessReply::sendQuitConfirmed(fd, nick);
 	client->setAuth(false);
 	throw Client::disconnected;
 }

@@ -8,23 +8,23 @@ void Server::cmdTopic(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
+    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
     std::istringstream iss(args);
     std::string chanName;
     if (!(iss >> chanName))
     {
-        ErrorReply::sendNeedMoreParams(fd, user, "TOPIC");
+        ErrorReply::sendNeedMoreParams(fd, nick, "TOPIC");
         return;
     }
     Channel *channel = getChannel(chanName);
     if (!channel)
     {
-        ErrorReply::sendNoSuchChannel(fd, user, chanName);
+        ErrorReply::sendNoSuchChannel(fd, nick, chanName);
         return;
     }
     if (!channel->isClient(*sender))
     {
-        ErrorReply::sendNotOnChannel(fd, user, chanName);
+        ErrorReply::sendNotOnChannel(fd, nick, chanName);
         return;
     }
     std::string rest;
@@ -34,17 +34,17 @@ void Server::cmdTopic(const std::string &args, int fd)
     if (rest.empty())
     {
         if (channel->getTopic().empty())
-            ErrorReply::sendNoTopic(fd, user, chanName);
+            ErrorReply::sendNoTopic(fd, nick, chanName);
         else
         {
-            std::string rpl = "332 " + user + " " + chanName + " :" + channel->getTopic() + "\r\n";
+            std::string rpl = "332 " + nick + " " + chanName + " :" + channel->getTopic() + "\r\n";
             send(fd, rpl.c_str(), rpl.size(), 0);
         }
         return;
     }
     if (channel->isMode('t') && !channel->isOp(*sender))
     {
-        ErrorReply::sendChanOpPrivsNeeded(fd, user, chanName);
+        ErrorReply::sendChanOpPrivsNeeded(fd, nick, chanName);
         return;
     }
     std::string initTopic = rest;
@@ -53,5 +53,5 @@ void Server::cmdTopic(const std::string &args, int fd)
     channel->setTopic(initTopic);
     std::string topicMsg = " TOPIC " + chanName + " :" + initTopic;
     channel->broadcast(*sender, topicMsg, _clients);
-    SuccessReply::sendTopicUpdated(fd, user, chanName);
+    SuccessReply::sendTopicUpdated(fd, nick, chanName);
 }

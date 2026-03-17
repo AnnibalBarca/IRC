@@ -14,31 +14,31 @@ void Server::cmdNick(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
+    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
     std::istringstream iss(args);
     std::string nickName;
     if (!(iss >> nickName))
     {
-        ErrorReply::sendNoNickNameGiven(fd, user);
+        ErrorReply::sendNoNickNameGiven(fd, nick);
         return;
     }
     if (nickName.empty() || nickName.size() > MAX_NICKNAME_SIZE)
     {
-        ErrorReply::sendNoNickNameGiven(fd, user);
+        ErrorReply::sendNoNickNameGiven(fd, nick);
         return;
     }
     for (unsigned int idx = 0; idx < nickName.size(); idx++)
     {
         if (isWrongNameChar(nickName[idx]))
         {
-            ErrorReply::sendErroneusNickname(fd, user, nickName);
+            ErrorReply::sendErroneusNickname(fd, nick, nickName);
             return;           
         }
     }
     Client *client = getClientByNick(nickName);
     if (client && client != sender)
     {
-        ErrorReply::sendNickNameInUse(fd, user, nickName);
+        ErrorReply::sendNickNameInUse(fd, nick, nickName);
         return;
     }
     std::string oldNick = sender->getNick();

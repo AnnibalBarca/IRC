@@ -9,38 +9,38 @@ void Server::cmdMode(const std::string &args, int fd)
     Client *sender = getClient(fd);
     if (!sender)
         return;
-    std::string user = sender->getUser().empty() ? "*" : sender->getUser();
+    std::string nick = sender->getNick().empty() ? "*" : sender->getNick();
     std::istringstream iss(args);
     std::string chanName, modeStr;
     if (!(iss >> chanName))
     {
-        ErrorReply::sendNeedMoreParams(fd, user, "MODE");
+        ErrorReply::sendNeedMoreParams(fd, nick, "MODE");
         return;
     }
     Channel *channel = getChannel(chanName);
     if (!channel)
     {
-        ErrorReply::sendNoSuchChannel(fd, user, chanName);
+        ErrorReply::sendNoSuchChannel(fd, nick, chanName);
         return;
     }
     if (!(iss >> modeStr))
     {
-        std::string rpl324 = "324 " + user + " " + chanName + " +" + channel->getModes() + "\r\n";
+        std::string rpl324 = "324 " + nick + " " + chanName + " +" + channel->getModes() + "\r\n";
         send(fd, rpl324.c_str(), rpl324.size(), 0);
         std::stringstream ss;
         ss << channel->getCreationTime();
-        std::string rpl329 = "329 " + user + " " + chanName + " " + ss.str() + "\r\n";
+        std::string rpl329 = "329 " + nick + " " + chanName + " " + ss.str() + "\r\n";
         send(fd, rpl329.c_str(), rpl329.size(), 0);
         return;
     }
     if (!channel->isClient(*sender))
     {
-        ErrorReply::sendNotOnChannel(fd, user, chanName);
+        ErrorReply::sendNotOnChannel(fd, nick, chanName);
         return;
     }
     if (!channel->isOp(*sender))
     {
-        ErrorReply::sendChanOpPrivsNeeded(fd, user, chanName);
+        ErrorReply::sendChanOpPrivsNeeded(fd, nick, chanName);
         return;
     }
     std::vector<std::string> params;
@@ -74,17 +74,17 @@ void Server::cmdMode(const std::string &args, int fd)
                 success = modeT(channel, adding);
                 break;
             case 'k':
-                success = modeK(channel, user, adding, paramIdx, params, fd);
+                success = modeK(channel, nick, adding, paramIdx, params, fd);
                 break;
             case 'o':
-                success = modeO(channel, user, chanName, adding, paramIdx, params, fd);
+                success = modeO(channel, nick, chanName, adding, paramIdx, params, fd);
                 break;
             case 'l':
-                success = modeL(channel, user, adding, paramIdx, params, fd);
+                success = modeL(channel, nick, adding, paramIdx, params, fd);
                 break;
             default:
                 if (std::isalpha((unsigned char)c))
-                    ErrorReply::sendUnknownModeChar(fd, user, c);
+                    ErrorReply::sendUnknownModeChar(fd, nick, c);
                 continue;
         }
         if (success)
@@ -116,7 +116,7 @@ void Server::cmdMode(const std::string &args, int fd)
     {
         std::string msg = " MODE " + chanName + " " + finalModes + finalParams;
         channel->broadcast(*sender, msg, _clients);
-        SuccessReply::sendModeUpdated(fd, user, chanName, finalModes + finalParams);
+        SuccessReply::sendModeUpdated(fd, nick, chanName, finalModes + finalParams);
     }
 }
 
