@@ -1,6 +1,13 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
 
+static bool isWrongNameChar(const char c)
+{
+    if (c == ' ' || c == '\a' || c == '\007' || c == ':' || c == ',' || c == '#')
+        return true;
+    return false;
+}
+
 void Server::cmdNick(const std::string &args, int fd) 
 {
     Client *sender = getClient(fd);
@@ -11,25 +18,33 @@ void Server::cmdNick(const std::string &args, int fd)
     std::string nickName;
     if (!(iss >> nickName))
     {
-        ErrorReply::sendNeedMoreParams(fd, user, "NICK");
+        ErrorReply::sendNoNickNameGiven(fd, user);
         return;
     }
     if (nickName.empty() || nickName.size() > MAX_NICKNAME_SIZE)
     {
-        ErrorReply::sendNeedMoreParams(fd, user, "NICK");
+        ErrorReply::sendNoNickNameGiven(fd, user);
         return;
     }
     for (int idx = 0; idx < nickName.size(); idx++)
     {
-        if (!isWrongNameChar())
+        if (isWrongNameChar(nickName[idx]))
+        {
+            ErrorReply::sendErroneusNickname(fd, user, nickName);
+            return;           
+        }
     }
-
     Client *client = getClientByNick(nickName);
-    if (client->getNick() == nickName)
+    if (client && client != sender)
     {
         ErrorReply::sendNickNameInUse(fd, user, nickName);
         return;
     }
-    
     sender->setNick(nickName);
+    if (sender->isRegistered() && !sender->isWelcomed())
+    {
+        sender->setWelcomed(true);
+        std::string welcomeMsg = ":irc 001 " + nickName + " :Welcome to the Internet Relay Network\r\n";
+        send(fd, welcomeMsg.c_str(), welcomeMsg.size(), 0);
+    }
 }

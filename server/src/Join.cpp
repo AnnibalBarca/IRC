@@ -1,14 +1,14 @@
 #include "Server.hpp"
 #include "ErrorReplies.hpp"
 
-bool isWrongNameChar(char nameChar)
+static bool isWrongNameChar(const char nameChar)
 {
     if (nameChar == ' ' || nameChar == '\a' || nameChar == '\007' || nameChar == ':' || nameChar == ',')
         return false;
     return true;
 }
 
-bool isValidChanName(std::string chanName)
+static bool isValidChanName(std::string chanName)
 {
     if (chanName.empty() || chanName.size() < 2 || chanName.size() > MAX_CHANNELNAME_SIZE)
         return false;
