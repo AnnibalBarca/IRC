@@ -98,4 +98,19 @@ namespace ErrorReply
     {
         sendReply(fd, "432 " + user + " " + nickName + ERR_ERRONEUSNICKNAME);
     }
+
+    void sendCannotSendToChan(int fd, const std::string &user, const std::string &chanName)
+    {
+        sendReply(fd, "404 " + user + " " + chanName + ERR_CANNOTSENDTOCHAN);
+    }
+
+    void sendNoRecipient(int fd, const std::string &user)
+    {
+        sendReply(fd, "411 " + user + ERR_NORECIPIENT);
+    }
+
+    void sendNoTextToSend(int fd, const std::string &user)
+    {
+        sendReply(fd, "412 " + user + ERR_NOTEXTTOSEND);
+    }
 }

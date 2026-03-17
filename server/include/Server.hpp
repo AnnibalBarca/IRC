@@ -53,6 +53,7 @@ class Server
         void    cmdUser(const std::string& args, int fd);
         void    cmdJoin(const std::string& args, int fd);
         void    cmdQuit(const std::string &args, int fd);
+        void    cmdPrivMsg(const std::string &args, int fd);
         bool    modeI(Channel *channel, bool adding);
         bool    modeT(Channel *channel, bool adding);
         bool    modeK(Channel *channel, const std::string &user, bool adding,

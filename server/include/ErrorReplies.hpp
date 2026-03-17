@@ -21,4 +21,7 @@ namespace ErrorReply
     void sendNickNameInUse(int fd, const std::string &user, const std::string &nickName);
     void sendNoNickNameGiven(int fd, const std::string &user);
     void sendErroneusNickname(int fd, const std::string &user, const std::string &nickName);
+    void sendCannotSendToChan(int fd, const std::string &user, const std::string &chanName);
+    void sendNoRecipient(int fd, const std::string &user);
+    void sendNoTextToSend(int fd, const std::string &user);
 }

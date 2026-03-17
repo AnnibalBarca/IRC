@@ -228,6 +228,7 @@ void Server::parseCommands(const std::string &cmd, int fd)
     cmds["TOPIC"] = &Server::cmdTopic;
     cmds["MODE"] = &Server::cmdMode;
     cmds["QUIT"] = &Server::cmdQuit;
+    cmds["PRIVMSG"] = &Server::cmdPrivMsg;
     std::map<std::string, CmdHandling>::iterator iter = cmds.find(command);
     if (iter != cmds.end())
         (this->*(iter->second))(args, fd);

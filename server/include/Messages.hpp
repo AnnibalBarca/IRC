@@ -17,3 +17,6 @@
 #define ERR_NICKNAMEINUSE     " ::Nickname is already in use\r\n"
 #define ERR_ERRONEUSNICKNAME  " :Erroneus nickname\r\n"
 #define ERR_NONICKNAMEGIVEN   " :No nickname given\r\n"
+#define ERR_CANNOTSENDTOCHAN  " :Cannot send to channel\r\n"
+#define ERR_NORECIPIENT       " :No recipient given (PRIVMSG)\r\n"
+#define ERR_NOTEXTTOSEND      " :No text to send\r\n"
