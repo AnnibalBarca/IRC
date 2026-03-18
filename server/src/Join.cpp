@@ -55,7 +55,7 @@ void Server::cmdJoin(const std::string &args, int fd)
         sender->addChan(channel);
         std::string joinMsg = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost() + " JOIN " + channel->getName() + "\r\n";
         sender->forward(joinMsg);
-        channel->broadcast(*sender, " JOIN " + channel->getName(), _clients);
+        channel->broadcastMsg(*sender, " JOIN " + channel->getName(), _clients);
         std::string topicMsg = "331 " + nick + " " + chanName + " :No topic is set\r\n";
         send(fd, topicMsg.c_str(), topicMsg.size(), 0);
         std::string namesMsg = "353 " + nick + " = " + chanName + " :" + sender->getNick() + "\r\n";
@@ -100,7 +100,7 @@ void Server::cmdJoin(const std::string &args, int fd)
     sender->addChan(channel);
     std::string joinMsg = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost() + " JOIN " + channel->getName() + "\r\n";
     sender->forward(joinMsg);
-    channel->broadcast(*sender, " JOIN " + channel->getName(), _clients);
+    channel->broadcastMsg(*sender, " JOIN " + channel->getName(), _clients);
     if (channel->getTopic().empty())
     {
         std::string topicMsg = "331 " + nick + " " + chanName + " :No topic is set\r\n";

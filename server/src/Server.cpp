@@ -100,7 +100,9 @@ void Server::newClient()
     _pollFds.push_back(pfd);
     Client client;
     client.setFd(client_fd);
-    client.setIp(inet_ntoa(client_addr.sin_addr));
+    std::string addr = inet_ntoa(client_addr.sin_addr);
+    client.setIp(addr);
+    client.setHost(addr);
     _clients.push_back(client);
     std::cout << "Client <" << client_fd << "> connected from "
               << inet_ntoa(client_addr.sin_addr) << std::endl;
@@ -221,6 +223,12 @@ void Server::parseCommands(const std::string &cmd, int fd)
     for (size_t i = 0; i < command.size(); i++)
         command[i] = std::toupper(command[i]);
     if (!client->isAuth() && command != "PASS" && command != "QUIT")
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        ErrorReply::sendNotRegistered(fd, nick);
+        return;
+    }
+    if (client->isAuth() && !client->isRegistered() && command != "PASS" && command != "NICK" && command != "USER" && command != "QUIT")
     {
         std::string nick = client->getNick().empty() ? "*" : client->getNick();
         ErrorReply::sendNotRegistered(fd, nick);
