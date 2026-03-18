@@ -17,6 +17,7 @@ void Server::cmdMode(const std::string &args, int fd)
         ErrorReply::sendNeedMoreParams(fd, nick, "MODE");
         return;
     }
+    chanName = normalizeChannelName(chanName);
     Channel *channel = getChannel(chanName);
     if (!channel)
     {

@@ -272,3 +272,11 @@ Channel *Server::getChannel(const std::string &name)
     }
     return NULL;
 }
+
+std::string Server::normalizeChannelName(const std::string &name)
+{
+    std::string normalized = name;
+    for (size_t i = 0; i < normalized.size(); i++)
+        normalized[i] = std::toupper(normalized[i]);
+    return normalized;
+}

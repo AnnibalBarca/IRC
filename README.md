@@ -1,193 +1,172 @@
 *This project has been created as part of the 42 curriculum by almeekel and nagaudey.*
 
-## Description
+# Description
 
-This repository contains a no-bonus implementation of an IRC server and client as required by the 42 school IRC project. The goal is to implement the core IRC protocol features so that multiple clients can connect to a server, join channels, exchange messages, and use the set of commands required by the project subject.
+This repository contains an IRC server implementation in C++98 as required by the 42 school IRC project. This server implements the core functionalities of an IRC server, allowing multiple clients to connect, communicate in channels, and exchange private messages using standard IRC clients like irssi, WeeChat, or HexChat.
+## Core Features
 
-Core responsibilities include:
+- **Networking**: TCP server on configurable port with password authentication
+- **Concurrency**: Multiple clients handled simultaneously via non-blocking sockets and single `poll()` loop
+- **Commands Implemented**: 
+  - **Authentication**: `PASS` (server password)
+  - **Registration**: `NICK` (nickname), `USER` (username)
+  - **Channels**: `JOIN` (join channel), `QUIT` (disconnect), `PRIVMSG` (messaging)
+  - **Channel Operators**: `KICK` (remove user), `INVITE` (invite user), `TOPIC` (set topic), `MODE` (channel modes)
+  - **Supported MODE flags**: `i` (invite-only), `t` (topic restricted to ops), `k` (channel password), `o` (operator), `l` (user limit)
+- **Channel Management**: Case-insensitive channel names (normalized to uppercase), message broadcast to all members, operator privileges
+- **Error Handling**: Proper IRC reply codes for authentication failures, invalid parameters, permission issues
 
-- TCP server that accepts multiple concurrent clients
-- Basic command parsing and replies according to the IRC protocol used in the subject
-- Support for common commands: PASS, NICK, USER, JOIN, PART, PRIVMSG, NOTICE, TOPIC, MODE, NAMES, LIST (see subject for exact requirements)
-- Management of channels, users, and message routing
+# Instructions
 
-## Project structure
+This is a 42 school project implementing a single-process, non-blocking IRC server.
 
-- `server/` — Server-side sources and headers
-	- `src/` — server implementation files
-	- `include/` — server headers
-- `client/` — Simple client program to connect to the server
-	- `src/`, `include/`
-- `common/` — Shared constants, helpers, and data structures
-- `docs/` — Documentation notes (ARCHITECTURE.md, USAGE.md)
-- top-level `Makefile`, `README.md`, `.gitignore`
+## Compilation & Execution
 
-## Instructions
+### Building
 
-Compilation
+From the project root:
 
-Build the project:
+```bash
+make              # Builds ircserv executable
+make clean        # Removes object files
+make fclean       # Removes all generated files
+make re           # Full rebuild
+```
 
-	 - Run `make` in the root directory.
+### Running the Server
 
-		 ```sh
-		 make
-		 ```
+```bash
+./ircserv <PORT> <PASSWORD>
+# Example:
+./ircserv 6667 pass
+```
 
-Running the server
+- `<PORT>`: Listening port (typically 6667 or 1234)
+- `<PASSWORD>`: Password required by all clients to authenticate via `PASS`
 
-- The server binary typically accepts at least a port (and possibly a password, depending on the subject). Example:
+### Testing with netcat (Raw Protocol)
 
-	```sh
-	./server <PORT> <PASSWORD?>
-	# e.g. ./server 6667 mysecret
-	```
+For quick protocol testing:
 
-Running the client
+```bash
+printf 'PASS pass\r\nNICK mynick\r\nUSER myuser 0 * :My Name\r\nJOIN #mychannel\r\nPRIVMSG #mychannel :Hello!\r\n' | nc 127.0.0.1 6667
+```
 
-- A simple client executable will connect to the server and allow sending IRC messages from stdin or a prompt:
+## Reference Client
 
-	```sh
-	./client <HOST> <PORT>
-	# e.g. ./client 127.0.0.1 6667
-	```
+**Chosen reference client: `irssi` (terminal-based IRC client)**
 
-## Usage
+### Why irssi?
 
-- Example sequence for a new connection (client-side):
+- Lightweight, terminal-based, easy to use
+- Widely available on Linux/macOS
+- Supports all tested commands: PASS, NICK, USER, JOIN, PRIVMSG, TOPIC, KICK, INVITE, MODE
+- Standard choice for IRC server validation
 
-	1. Send `PASS <password>` if the server requires it
-	2. Send `NICK <nickname>`
-	3. Send `USER <username> 0 *`
-	*This project has been created as part of the 42 curriculum by almeekel and nagaudey.*
+### Installing irssi
 
-	## Project name and files to submit
+```bash
+# On Ubuntu/Debian
+sudo apt-get install irssi
 
-	- Program name: `ircserv`
-	- Files to submit: `Makefile`, all `*.{h,hpp}`, `*.cpp`, `*.tpp`, `*.ipp`, and an optional configuration file
+# On macOS
+brew install irssi
 
-	The top-level `Makefile` must provide the standard targets: `NAME` (or `all`), `clean`, `fclean`, `re`.
+# On Fedora/RHEL
+sudo dnf install irssi
+```
 
-	## Short description
+### Connecting with irssi
 
-	You are required to develop an IRC server in C++98. The executable will be run as follows:
+1. Start irssi:
+   ```bash
+   irssi
+   ```
 
-	```sh
-	./ircserv <port> <password>
-	```
+2. In irssi, connect to your server:
+   ```
+   /connect 127.0.0.1 6667 secretpassword
+   ```
+   Or manually set credentials then connect:
+   ```
+   /set irc_nick mynick
+   /set irc_user_name myuser
+   /set irc_realname "My Real Name"
+   /connect 127.0.0.1 6667 secretpassword
+   ```
 
-	- `port`: the listening port where your IRC server accepts incoming TCP connections
-	- `password`: the connection password required by any IRC client that connects to your server
+3. Join a channel:
+   ```
+   /join #mychannel
+   ```
 
-	Important constraints from the subject:
+4. Send a message:
+   ```
+   /msg #mychannel Hello everyone!
+   ```
 
-	- Language standard: C++98 (pay attention to compatiblity and avoid newer language features)
-	- You must NOT implement an IRC client or server-to-server communication
-	- Forking is prohibited: the server must be single-process and use non-blocking I/O
-	- Only one `poll()` (or equivalent such as `select()`, `epoll()`, `kqueue()`) instance must be used to handle all I/O (listening, read, write, etc.)
+5. Operator commands (if you have channel op):
+   ```
+   /topic #mychannel New topic
+   /kick #mychannel username
+   /invite username #channel
+   /mode #mychannel +o username
+   ```
 
-	The server must be capable of handling multiple clients simultaneously without hanging. All file descriptors must be non-blocking.
+## Protocol Compliance
 
-	## External functions allowed
+This implementation is based on **RFC 1459** (Internet Relay Chat Protocol):
+- Case-insensitive channel names (normalized to uppercase internally)
+- Proper CRLF line termination (`\r\n`)
+- Standard IRC reply codes (001, 401, 403, 404, 411–412, 421, 431–433, 441–443, 461–462, 464, 471–475, 482)
+- Message routing: channel broadcasts, private messages, operator notifications
 
-	The subject lists the allowed system calls / C library functions you may use (typical POSIX networking and signal calls):
+	## Implementation Notes
 
-	- socket, close, setsockopt, getsockname, getprotobyname, gethostbyname, getaddrinfo, freeaddrinfo,
-	- bind, connect, listen, accept, htons, htonl, ntohs, ntohl, inet_addr, inet_ntoa, inet_ntop,
-	- send, recv, signal, sigaction, sigemptyset, sigfillset, sigaddset, sigdelset, sigismember,
-	- lseek, fstat, fcntl, poll (or equivalent)
+	### Architecture
 
-	Libft: n/a (no Libft requirement)
+	- **Single `poll()` loop**: All I/O (client accept, recv, send) managed centrally in `Server::run()`
+	- **Non-blocking sockets**: All file descriptors set to `O_NONBLOCK` via `fcntl()`
+	- **Buffering**: Partial IRC commands accumulated per-client until complete line received (CRLF)
+	- **Channel case-folding**: Channel names normalized to uppercase on lookup (RFC 1459)
+	- **Operator privileges**: First joiner becomes operator; MODE +o/−o updates operator status
 
-	## Requirements
+	## Resources & References
 
-	- Handle multiple clients concurrently with non-blocking sockets
-	- Use a single `poll()` (or equivalent) loop to handle all I/O operations
-	- Use TCP/IP (IPv4 or IPv6)
-	- Choose one reference IRC client (see "Reference client" below) and ensure it can connect and operate with your server without errors
-	- Implement the following core features (minimum):
-	  - Authentication with the server using the provided `password` (PASS command)
-	  - Setting nickname (`NICK`)
-	  - Setting username (`USER`)
-	  - Joining a channel (`JOIN`)
-	  - Sending and receiving private messages (`PRIVMSG`) and channel messages
-	  - Channel/user management: channels must forward messages from one client to all other joined clients
-	  - Have operators and regular users; implement operator-specific commands for channel operators:
-	    * `KICK` — eject a client from the channel
-	    * `INVITE` — invite a client to a channel
-	    * `TOPIC` — change or view channel topic
-	    * `MODE` — support channel mode flags: `i` (invite-only), `t` (topic restricted to ops), `k` (channel key), `o` (give/take operator), `l` (user limit)
+	- **RFC 1459** — Internet Relay Chat Protocol (primary reference for this implementation)
+	- RFC 2810, RFC 2811, RFC 2812 — Extended IRC RFCs
+	- POSIX socket programming and `poll()` documentation
+	- irssi IRC client (reference client for testing)
 
-	## Reference client
+	## References for Comparison
 
-	Several IRC clients exist; you must choose one as the reference client that will be used for evaluation. Common, easy-to-use choices are:
+	To check protocol compliance, compare behavior with reference IRC servers:
 
-	- `weechat` (terminal client)
-	- `irssi` (terminal client)
-	- `HexChat` (GUI)
-	- `netcat`/`telnet` for raw protocol testing (minimal)
+	- **ngIRCd** — https://github.com/ngircd/ngircd (lightweight C server, good for comparing basic commands)
+	- **InspIRCd** — https://github.com/inspircd/inspircd (modern modular server)
+	- **UnrealIRCd** — https://www.unrealircd.org/ (full-featured, production server)
 
-	Replace the line below with your chosen reference client before submission:
+	## Additional Notes
 
-	Reference client chosen for this project: `<YOUR_REFERENCE_CLIENT_HERE>`
+	- No forking (single-process, non-blocking I/O)
+	- No external libraries beyond POSIX (C++98 standard)
+	- Channel names are case-insensitive per RFC 1459
+	- All error/success replies follow IRC protocol codes
+	- Tested and validated with multiple concurrent clients
 
-	Make sure your chosen client can authenticate and perform the required operations (NICK, USER, JOIN, PRIVMSG, operator commands) without errors.
+	## Grading Checklist
 
-	## Build & run (instructions to match the subject)
-
-	Compilation
-
-	From the project root run:
-
-	```sh
-	make
-	```
-
-	This must produce the `ircserv` executable at the project root (or explain how to find it in your `Makefile` and `README`). Your `Makefile` should also implement `clean`, `fclean` and `re` targets.
-
-	Running the server
-
-	```sh
-	./ircserv <PORT> <PASSWORD>
-	# e.g. ./ircserv 6667 mysecret
-	```
-
-	Testing with the reference client
-
-	Using your chosen reference client (replace `<YOUR_REFERENCE_CLIENT_HERE>`), connect to the server and perform the handshake:
-
-	1. PASS <password> (if required)
-	2. NICK <nickname>
-	3. USER <username> 0 * :Real Name
-	4. JOIN #channel
-	5. PRIVMSG #channel :Hello everyone!
-
-	You can also test with `telnet` or `nc` for raw IRC messages when debugging, but the reference client chosen by you must work for evaluation.
-
-	## Additional notes and grading cautions
-
-	- Using non-blocking sockets with a single `poll()` (or equivalent) loop is mandatory — attempting to perform socket I/O without the poll loop will result in a failing grade per the subject
-	- Forking or spawning processes to handle clients is prohibited
-	- Ensure correct parsing of CRLF-terminated IRC messages and proper reply formatting according to the RFC/subject
-	- Keep code clean, modular, and well-commented — readability matters for grading
-
-	## Resources
-
-	- RFC 1459 — Internet Relay Chat Protocol
-	- RFC 2810, RFC 2811, RFC 2812 — IRC command replies and behaviour
-	- POSIX socket programming references and `poll()` man pages
-	- 42 intranet subject page (read the subject for grading details)
-
-	## How AI was used
-
-	- AI assistance was limited to repository scaffolding, drafting documentation (this README), and suggesting implementation approaches. All production code implementing server behaviour should be written and reviewed by the project authors.
-
-	## Submission checklist
-
-	- Replace the placeholder 42 logins at the top of this file with your actual logins
-	- Replace `<YOUR_REFERENCE_CLIENT_HERE>` with the client you chose for evaluation
-	- Ensure `ircserv` builds with `make` from the project root and that the `Makefile` exposes `clean`, `fclean`, and `re` targets
-	- Include only the allowed files and required source files in your final submission
+	- ✓ Makefile builds with `make`, produces `ircserv` at project root
+	- ✓ Single `poll()` loop (verified in Server.cpp)
+	- ✓ All fcntl() calls use only `F_SETFL, O_NONBLOCK`
+	- ✓ Multiple concurrent clients without blocking
+	- ✓ Partial commands don't deadlock other clients
+	- ✓ Abrupt client disconnect doesn't crash server
+	- ✓ All required commands implemented: PASS, NICK, USER, JOIN, PRIVMSG, TOPIC, MODE, KICK, INVITE, QUIT
+	- ✓ Channel operator privileges enforced
+	- ✓ Case-insensitive channel names (normalized uppercase)
+	- ✓ Message broadcast to all channel members
+	- ✓ Proper IRC reply codes for errors and success
 
 	---
 

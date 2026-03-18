@@ -46,7 +46,7 @@ void Server::cmdPrivMsg(const std::string &args, int fd)
             continue;
         if (isChannelTarget(target))
         {
-            std::string chanName = normalizeChannelTarget(target);
+            std::string chanName = normalizeChannelName(normalizeChannelTarget(target));
             Channel *channel = getChannel(chanName);
             if (!channel)
             {

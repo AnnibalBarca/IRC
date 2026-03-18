@@ -46,10 +46,7 @@ void Server::cmdJoin(const std::string &args, int fd)
         ErrorReply::sendNoSuchChannel(fd, nick, chanName);
         return;
     }
-    for (size_t idx = 0; idx < chanName.length(); idx++)
-    {
-        chanName[idx] = toupper(chanName[idx]);
-    }
+    chanName = normalizeChannelName(chanName);
     Channel *channel = getChannel(chanName);
     if (!channel)
     {

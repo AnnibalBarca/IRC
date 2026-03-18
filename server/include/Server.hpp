@@ -66,6 +66,7 @@ class Server
         Client*  getClient(int fd);
         Client*  getClientByNick(const std::string& nick);
         Channel* getChannel(const std::string& name);
+        std::string normalizeChannelName(const std::string& name);
         const std::string&  getPassword() const;
 };
 #endif

@@ -23,6 +23,7 @@ void Server::cmdKick(const std::string &args, int fd)
         reason.erase(0, 1);
     if (reason.empty())
         reason = nick;
+    chanName = normalizeChannelName(chanName);
     Channel *channel = getChannel(chanName);
     if (!channel)
     {

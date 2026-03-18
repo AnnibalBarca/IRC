@@ -43,8 +43,8 @@ int main(int ac, char **av)
 	std::cout << "---- SERVER ----" << std::endl;
 	try
     {
-		signal(SIGINT, Server::signalHandler); // catch ctrl + c
-		signal(SIGQUIT, Server::signalHandler); // (catch ctrl + \)
+		signal(SIGINT, Server::signalHandler);
+		signal(SIGQUIT, Server::signalHandler);
 		ser.serverInit(port, password);
 	}
 	catch(const std::exception& e){

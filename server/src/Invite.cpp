@@ -16,6 +16,7 @@ void Server::cmdInvite(const std::string &args, int fd)
         ErrorReply::sendNeedMoreParams(fd, nick, "INVITE");
         return;
     }
+    chanName = normalizeChannelName(chanName);
     Channel *channel = getChannel(chanName);
     if (!channel)
     {
