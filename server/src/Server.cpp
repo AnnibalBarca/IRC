@@ -208,6 +208,9 @@ void Server::parseCommands(const std::string &cmd, int fd)
 {
     if (cmd.empty())
         return;
+    Client *client = getClient(fd);
+    if (!client)
+        return;
     std::istringstream iss(cmd);
     std::string command;
     std::string args;
@@ -217,6 +220,12 @@ void Server::parseCommands(const std::string &cmd, int fd)
         args.erase(0, 1);
     for (size_t i = 0; i < command.size(); i++)
         command[i] = std::toupper(command[i]);
+    if (!client->isAuth() && command != "PASS" && command != "QUIT")
+    {
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        ErrorReply::sendNotRegistered(fd, nick);
+        return;
+    }
     typedef void (Server::*CmdHandling)(const std::string &, int);
     std::map<std::string, CmdHandling> cmds;
     cmds["PASS"] = &Server::cmdPass;
@@ -234,12 +243,8 @@ void Server::parseCommands(const std::string &cmd, int fd)
         (this->*(iter->second))(args, fd);
     else
     {
-        Client *client = getClient(fd);
-        if (client)
-        {
-            std::string nick = client->getNick().empty() ? "*" : client->getNick();
-            ErrorReply::sendUnknownCommand(fd, nick, command);
-        }
+        std::string nick = client->getNick().empty() ? "*" : client->getNick();
+        ErrorReply::sendUnknownCommand(fd, nick, command);
     }
 }
 

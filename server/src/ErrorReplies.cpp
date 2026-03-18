@@ -14,6 +14,11 @@ namespace ErrorReply
         sendReply(fd, "421 " + user + " " + command + ERR_UNKNOWNCOMMAND);
     }
 
+    void sendNotRegistered(int fd, const std::string &user)
+    {
+        sendReply(fd, "451 " + user + ERR_NOTREGISTERED);
+    }
+
     void sendNeedMoreParams(int fd, const std::string &user, const std::string &command)
     {
         sendReply(fd, "461 " + user + " " + command + ERR_NEEDMOREPARAMS);

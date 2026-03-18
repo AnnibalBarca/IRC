@@ -2,6 +2,7 @@
 #define ERR_NOSUCHNICK        " :No such nick/channel\r\n"
 #define ERR_NOSUCHCHANNEL     " :No such channel\r\n"
 #define ERR_UNKNOWNCOMMAND    " :Unknown command\r\n"
+#define ERR_NOTREGISTERED     " :You have not registered\r\n"
 #define ERR_NEEDMOREPARAMS    " :Not enough parameters\r\n"
 #define ERR_ALREADYREGISTERED " :You may not reregister\r\n"
 #define ERR_PASSWDMISMATCH    " :Password incorrect\r\n"

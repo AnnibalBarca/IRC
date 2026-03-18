@@ -4,6 +4,7 @@
 namespace ErrorReply
 {
     void sendUnknownCommand(int fd, const std::string &user, const std::string &command);
+    void sendNotRegistered(int fd, const std::string &user);
     void sendNeedMoreParams(int fd, const std::string &user, const std::string &command);
     void sendAlreadyRegistered(int fd, const std::string &user);
     void sendPasswordMismatch(int fd, const std::string &user);

@@ -118,7 +118,7 @@ sudo dnf install irssi
 This implementation is based on **RFC 1459** (Internet Relay Chat Protocol):
 - Case-insensitive channel names (normalized to uppercase internally)
 - Proper CRLF line termination (`\r\n`)
-- Standard IRC reply codes (001, 401, 403, 404, 411–412, 421, 431–433, 441–443, 461–462, 464, 471–475, 482)
+- Standard IRC reply codes (001, 401, 403, 404, 411–412, 421, 431–433, 441–443, 451, 461–462, 464, 471–475, 482)
 - Message routing: channel broadcasts, private messages, operator notifications
 
 	## Implementation Notes
