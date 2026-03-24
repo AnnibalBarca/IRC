@@ -17,5 +17,5 @@ void Server::cmdQuit(const std::string &args, int fd)
 	}
 	SuccessReply::sendQuitConfirmed(fd, nick);
 	client->setAuth(false);
-	throw Client::disconnected;
+	throw std::runtime_error("Client disconnected");
 }

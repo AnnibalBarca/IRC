@@ -2,8 +2,6 @@
 #include "Channel.hpp"
 #include <algorithm>
 
-std::runtime_error Client::disconnected = std::runtime_error("Client disconnected");
-
 Client::Client() : nick(""), user(""), ip(""), host(""), chans(), buf(""), fd(-1), auth(false), welcomed(false) {}
 
 Client::Client(int fd, std::string ip, std::string host)

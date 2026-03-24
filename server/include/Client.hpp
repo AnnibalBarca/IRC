@@ -24,7 +24,6 @@ class Client
         bool                    auth;
         bool                    welcomed;
     public:
-        static std::runtime_error disconnected;
         Client();
         Client(int fd, std::string ip, std::string host);
         ~Client();
