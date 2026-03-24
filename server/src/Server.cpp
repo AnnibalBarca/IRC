@@ -144,13 +144,10 @@ void Server::receiveData(int fd)
             }
             catch (const std::exception &e)
             {
-                if (std::string(e.what()) == Client::disconnected.what())
-                {
-                    clearClients(fd);
-                    close(fd);
-                    return;
-                }
-                std::cerr << "Parse error: " << e.what() << std::endl;
+                (void)e;
+                clearClients(fd);
+                close(fd);
+                return;
             }
         }
         break;
@@ -222,18 +219,7 @@ void Server::parseCommands(const std::string &cmd, int fd)
         args.erase(0, 1);
     for (size_t i = 0; i < command.size(); i++)
         command[i] = std::toupper(command[i]);
-    if (!client->isAuth() && command != "PASS" && command != "QUIT")
-    {
-        std::string nick = client->getNick().empty() ? "*" : client->getNick();
-        ErrorReply::sendNotRegistered(fd, nick);
-        return;
-    }
-    if (client->isAuth() && !client->isRegistered() && command != "PASS" && command != "NICK" && command != "USER" && command != "QUIT")
-    {
-        std::string nick = client->getNick().empty() ? "*" : client->getNick();
-        ErrorReply::sendNotRegistered(fd, nick);
-        return;
-    }
+    std::string nick = client->getNick().empty() ? "*" : client->getNick();
     typedef void (Server::*CmdHandling)(const std::string &, int);
     std::map<std::string, CmdHandling> cmds;
     cmds["PASS"] = &Server::cmdPass;
@@ -247,13 +233,22 @@ void Server::parseCommands(const std::string &cmd, int fd)
     cmds["QUIT"] = &Server::cmdQuit;
     cmds["PRIVMSG"] = &Server::cmdPrivMsg;
     std::map<std::string, CmdHandling>::iterator iter = cmds.find(command);
-    if (iter != cmds.end())
-        (this->*(iter->second))(args, fd);
-    else
+    if (iter == cmds.end())
     {
-        std::string nick = client->getNick().empty() ? "*" : client->getNick();
         ErrorReply::sendUnknownCommand(fd, nick, command);
+        return;
     }
+    if (!client->isAuth() && command != "PASS" && command != "QUIT")
+    {
+        ErrorReply::sendNotRegistered(fd, nick);
+        return;
+    }
+    if (client->isAuth() && !client->isRegistered() && command != "PASS" && command != "NICK" && command != "USER" && command != "QUIT")
+    {
+        ErrorReply::sendNotRegistered(fd, nick);
+        return;
+    }
+    (this->*(iter->second))(args, fd);
 }
 
 Client *Server::getClient(int fd)

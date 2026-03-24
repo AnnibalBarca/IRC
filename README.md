@@ -46,10 +46,70 @@ make re           # Full rebuild
 
 ### Testing with netcat (Raw Protocol)
 
-For quick protocol testing:
+Open a raw connection:
 
 ```bash
-printf 'PASS pass\r\nNICK mynick\r\nUSER myuser 0 * :My Name\r\nJOIN #mychannel\r\nPRIVMSG #mychannel :Hello!\r\n' | nc 127.0.0.1 6667
+nc 127.0.0.1 6667
+```
+
+Send one command per line.
+
+Registration (required before JOIN/PRIVMSG/TOPIC/MODE/KICK/INVITE):
+
+```text
+PASS <server_password>
+NICK <nickname>
+USER <username> 0 * :<realname>
+```
+
+Important:
+- `USER` must include a trailing realname starting with `:`
+- Wrong `PASS` returns `464` and closes the client connection
+
+Command formats accepted by this server:
+
+```text
+PASS <server_password>
+NICK <nickname>
+USER <username> 0 * :<realname>
+
+JOIN <#channel>
+JOIN <#channel> <key>
+
+PRIVMSG <nick> :<message>
+PRIVMSG <#channel> :<message>
+
+TOPIC <#channel>
+TOPIC <#channel> :<new topic>
+
+INVITE <nick> <#channel>
+
+KICK <#channel> <nick>
+KICK <#channel> <nick> :<reason>
+
+MODE <#channel>
+MODE <#channel> +i
+MODE <#channel> -i
+MODE <#channel> +t
+MODE <#channel> -t
+MODE <#channel> +k <key>
+MODE <#channel> -k
+MODE <#channel> +l <limit>
+MODE <#channel> -l
+MODE <#channel> +o <nick>
+MODE <#channel> -o <nick>
+
+QUIT
+```
+
+Scripted examples (`\r\n` line endings):
+
+```bash
+printf 'PASS pass\r\nNICK john\r\nUSER john 0 * :John Doe\r\nJOIN #test\r\nPRIVMSG #test :hello channel\r\n' | nc 127.0.0.1 6667
+```
+
+```bash
+printf 'PASS pass\r\nNICK alice\r\nUSER alice 0 * :Alice\r\nPRIVMSG bob :hello bob\r\n' | nc 127.0.0.1 6667
 ```
 
 ## Reference Client
