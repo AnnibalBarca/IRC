@@ -15,7 +15,7 @@
 #define ERR_RPL_NOTOPIC       " :No topic is set\r\n"
 #define ERR_USERONCHANNEL     " :is already on channel\r\n"
 #define ERR_UNKNOWNMODE       " :is unknown mode char to me\r\n"
-#define ERR_NICKNAMEINUSE     " ::Nickname is already in use\r\n"
+#define ERR_NICKNAMEINUSE     " :Nickname is already in use\r\n"
 #define ERR_ERRONEUSNICKNAME  " :Erroneus nickname\r\n"
 #define ERR_NONICKNAMEGIVEN   " :No nickname given\r\n"
 #define ERR_CANNOTSENDTOCHAN  " :Cannot send to channel\r\n"
