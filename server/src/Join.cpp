@@ -77,6 +77,15 @@ void Server::cmdJoin(const std::string &args, int fd)
                 return;
             }
         }
+        else
+        {
+            if (keyName.length() > MAX_KEY_SIZE)
+            {
+                ErrorReply::sendBadChannelKey(fd, nick, chanName);
+                return;
+            }
+            channel->setPasswd(keyName);
+        }
     }
     else
     {

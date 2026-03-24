@@ -24,7 +24,7 @@ void Server::cmdNick(const std::string &args, int fd)
     }
     if (nickName.empty() || nickName.size() > MAX_NICKNAME_SIZE)
     {
-        ErrorReply::sendNoNickNameGiven(fd, nick);
+        ErrorReply::sendErroneusNickname(fd, nick, nickName);
         return;
     }
     for (unsigned int idx = 0; idx < nickName.size(); idx++)

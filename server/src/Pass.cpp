@@ -23,6 +23,7 @@ void Server::cmdPass(const std::string &args, int fd)
     if (pass != _password)
     {
         ErrorReply::sendPasswordMismatch(fd, nick);
+        flushClientOutput(fd);
         clearClients(fd);
         close(fd);
         return;

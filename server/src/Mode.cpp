@@ -161,7 +161,10 @@ bool Server::modeK(Channel *channel, const std::string &user, bool adding,
             ErrorReply::sendNeedMoreParams(fd, user, "MODE");
             return false;
         }
-        std::string key = params[paramIdx++];
+        std::string key = params[paramIdx];
+        if (key.length() > MAX_KEY_SIZE)
+            return false;
+        paramIdx++;
         channel->setPasswd(key);
         modeHandling(channel, 'k', true);
         return true;

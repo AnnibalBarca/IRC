@@ -3,6 +3,7 @@
 #include <vector>
 #include "Client.hpp"
 #define MAX_CHANNELNAME_SIZE 10
+#define MAX_KEY_SIZE 23
 
 class Channel
 {
