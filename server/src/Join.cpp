@@ -38,6 +38,14 @@ void Server::cmdJoin(const std::string &args, int fd)
     }
     if (!chanName.empty() && chanName[0] == ':')
         chanName.erase(0, 1);
+    if (iss >> keyName)
+    {
+        if (keyName.length() > MAX_KEY_SIZE)
+        {
+            ErrorReply::sendBadChannelKey(fd, nick, chanName);
+            return;
+        }
+    }
     size_t commaPos = chanName.find(',');
     if (commaPos != std::string::npos)
         chanName = chanName.substr(0, commaPos);
@@ -52,6 +60,11 @@ void Server::cmdJoin(const std::string &args, int fd)
     {
         _channels.push_back(Channel(chanName, *sender));
         channel = &_channels.back();
+        if (!keyName.empty())
+        {
+            channel->setPasswd(keyName);
+            modeHandling(channel, 'k', true);
+        }
         sender->addChan(chanName);
         std::string joinMsg = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost() + " JOIN " + channel->getName() + "\r\n";
         sender->forward(joinMsg);
@@ -67,29 +80,9 @@ void Server::cmdJoin(const std::string &args, int fd)
     }
     if (channel->isClient(*sender))
         return;
-    if (iss >> keyName)
+    if (channel->getPasswd().length() >= 1)
     {
-        if (!channel->getPasswd().empty())
-        {
-            if (channel->getPasswd() != keyName)
-            {
-                ErrorReply::sendBadChannelKey(fd, nick, chanName);
-                return;
-            }
-        }
-        else
-        {
-            if (keyName.length() > MAX_KEY_SIZE)
-            {
-                ErrorReply::sendBadChannelKey(fd, nick, chanName);
-                return;
-            }
-            channel->setPasswd(keyName);
-        }
-    }
-    else
-    {
-        if (!channel->getPasswd().empty())
+        if (channel->getPasswd() != keyName)
         {
             ErrorReply::sendBadChannelKey(fd, nick, chanName);
             return;
