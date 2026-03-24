@@ -26,7 +26,7 @@ void Server::cmdMode(const std::string &args, int fd)
     }
     if (!(iss >> modeStr))
     {
-        std::string rpl324 = "324 " + nick + " " + chanName + " +" + channel->getModes() + "\r\n";
+        std::string rpl324 = "324 " + nick + " " + chanName + " " + channel->getModes() + "\r\n";
         send(fd, rpl324.c_str(), rpl324.size(), 0);
         std::stringstream ss;
         ss << channel->getCreationTime();
