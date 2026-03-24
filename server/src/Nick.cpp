@@ -48,6 +48,6 @@ void Server::cmdNick(const std::string &args, int fd)
     {
         sender->setWelcomed(true);
         std::string welcomeMsg = ":irc 001 " + nickName + " :Welcome to the Internet Relay Network\r\n";
-        send(fd, welcomeMsg.c_str(), welcomeMsg.size(), 0);
+        queueToFd(fd, welcomeMsg);
     }
 }

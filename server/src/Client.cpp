@@ -1,11 +1,11 @@
 #include "Client.hpp"
-#include "Channel.hpp"
+#include "Server.hpp"
 #include <algorithm>
 
-Client::Client() : nick(""), user(""), ip(""), host(""), chans(), buf(""), fd(-1), auth(false), welcomed(false) {}
+Client::Client() : nick(""), user(""), ip(""), host(""), chans(), buf(""), outBuf(""), fd(-1), auth(false), welcomed(false) {}
 
 Client::Client(int fd, std::string ip, std::string host)
-    : nick(""), user(""), ip(ip), host(host), chans(), buf(""), fd(fd), auth(false), welcomed(false) {}
+    : nick(""), user(""), ip(ip), host(host), chans(), buf(""), outBuf(""), fd(fd), auth(false), welcomed(false) {}
 
 Client::~Client() {}
 
@@ -51,13 +51,20 @@ void        Client::addBuf(std::string buf)     { this->buf += buf; }
 
 std::string &Client::getBuf()                   { return this->buf; }
 
-std::vector<Channel *> &Client::getChans()      { return this->chans; }
+void        Client::addOutBuf(const std::string &msg) { this->outBuf += msg; }
+
+std::string &Client::getOutBuf()                { return this->outBuf; }
+
+std::vector<std::string> &Client::getChans()    { return this->chans; }
 
 bool Client::operator==(const Client &c) const  { return this->getFd() == c.getFd(); }
 
 void Client::forward(std::string msg)
 {
-    send(this->fd, msg.c_str(), msg.size(), MSG_DONTWAIT);
+    this->addOutBuf(msg);
+    Server *server = Server::instance();
+    if (server)
+        server->enablePollOut(this->fd);
 }
 
 void Client::sendMsg(std::string msg, Client &c) { c.forward(msg); }
@@ -67,34 +74,14 @@ void Client::sendReply(std::string code, std::string msg)
     this->forward(":" + this->host + " " + code + " " + msg + "\r\n");
 }
 
-void Client::addChan(Channel *chan) { this->chans.push_back(chan); }
-
-void Client::removeChan(Channel *chan)
+void Client::addChan(const std::string &chanName)
 {
-    for (std::vector<Channel *>::iterator it = this->chans.begin(); it != this->chans.end(); ++it)
-        if (*it == chan) { this->chans.erase(it); break; }
+    if (std::find(this->chans.begin(), this->chans.end(), chanName) == this->chans.end())
+        this->chans.push_back(chanName);
 }
 
-void Client::disconnect()
+void Client::removeChan(const std::string &chanName)
 {
-    std::string quit_msg = ":" + this->nick + "!" + this->user + "@" + this->host + " QUIT :Leaving\r\n";
-    std::vector<int> to_notify;
-    for (std::vector<Channel *>::iterator it = this->chans.begin(); it != this->chans.end(); ++it)
-    {
-        std::vector<int> &fds = (*it)->getClientFds();
-        for (size_t i = 0; i < fds.size(); i++)
-            if (fds[i] != this->fd) to_notify.push_back(fds[i]);
-        (*it)->removeClient(*this);
-        (*it)->removeOp(*this);
-    }
-    this->chans.clear();
-    std::vector<int> notified;
-    for (size_t i = 0; i < to_notify.size(); i++)
-    {
-        if (std::find(notified.begin(), notified.end(), to_notify[i]) == notified.end())
-        {
-            send(to_notify[i], quit_msg.c_str(), quit_msg.size(), MSG_DONTWAIT);
-            notified.push_back(to_notify[i]);
-        }
-    }
+    for (std::vector<std::string>::iterator it = this->chans.begin(); it != this->chans.end(); ++it)
+        if (*it == chanName) { this->chans.erase(it); break; }
 }

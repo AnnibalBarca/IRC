@@ -9,8 +9,6 @@
 #define MAX_USERNAME_SIZE 10
 #define MAX_NICKNAME_SIZE 10
 
-class Channel;
-
 class Client
 {
     private:
@@ -18,8 +16,9 @@ class Client
         std::string             user;
         std::string             ip;
         std::string             host;
-        std::vector<Channel *>  chans;
+        std::vector<std::string> chans;
         std::string             buf;
+        std::string             outBuf;
         int                     fd;
         bool                    auth;
         bool                    welcomed;
@@ -48,12 +47,13 @@ class Client
         void        setBuf(std::string buf);
         void        addBuf(std::string buf);
         std::string &getBuf();
-        std::vector<Channel *> &getChans();
-        void        addChan(Channel *chan);
-        void        removeChan(Channel *chan);
+        void        addOutBuf(const std::string &msg);
+        std::string &getOutBuf();
+        std::vector<std::string> &getChans();
+        void        addChan(const std::string &chanName);
+        void        removeChan(const std::string &chanName);
         void        forward(std::string msg);
         void        sendMsg(std::string msg, Client &c);
         void        sendReply(std::string code, std::string msg);
-        void        disconnect();
         bool        operator==(const Client &c) const;
 };

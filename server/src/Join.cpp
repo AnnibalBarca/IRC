@@ -52,16 +52,16 @@ void Server::cmdJoin(const std::string &args, int fd)
     {
         _channels.push_back(Channel(chanName, *sender));
         channel = &_channels.back();
-        sender->addChan(channel);
+        sender->addChan(chanName);
         std::string joinMsg = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost() + " JOIN " + channel->getName() + "\r\n";
         sender->forward(joinMsg);
         channel->broadcastMsg(*sender, " JOIN " + channel->getName(), _clients);
         std::string topicMsg = "331 " + nick + " " + chanName + " :No topic is set\r\n";
-        send(fd, topicMsg.c_str(), topicMsg.size(), 0);
+        queueToFd(fd, topicMsg);
         std::string namesMsg = "353 " + nick + " = " + chanName + " :" + sender->getNick() + "\r\n";
-        send(fd, namesMsg.c_str(), namesMsg.size(), 0);
+        queueToFd(fd, namesMsg);
         std::string endNamesMsg = "366 " + nick + " " + chanName + " :End of NAMES list\r\n";
-        send(fd, endNamesMsg.c_str(), endNamesMsg.size(), 0);
+        queueToFd(fd, endNamesMsg);
         SuccessReply::sendJoinConfirmed(fd, nick, chanName);
         return;
     }
@@ -97,19 +97,19 @@ void Server::cmdJoin(const std::string &args, int fd)
         return;
     }
     channel->addClient(*sender);
-    sender->addChan(channel);
+    sender->addChan(chanName);
     std::string joinMsg = ":" + sender->getNick() + "!" + sender->getUser() + "@" + sender->getHost() + " JOIN " + channel->getName() + "\r\n";
     sender->forward(joinMsg);
     channel->broadcastMsg(*sender, " JOIN " + channel->getName(), _clients);
     if (channel->getTopic().empty())
     {
         std::string topicMsg = "331 " + nick + " " + chanName + " :No topic is set\r\n";
-        send(fd, topicMsg.c_str(), topicMsg.size(), 0);
+        queueToFd(fd, topicMsg);
     }
     else
     {
         std::string topicMsg = "332 " + nick + " " + chanName + " :" + channel->getTopic() + "\r\n";
-        send(fd, topicMsg.c_str(), topicMsg.size(), 0);
+        queueToFd(fd, topicMsg);
     }
     std::vector<int> &clientFds = channel->getClientFds();
     std::string namesMsg = "353 " + nick + " = " + chanName + " :";
@@ -126,8 +126,8 @@ void Server::cmdJoin(const std::string &args, int fd)
         }
     }
     namesMsg += "\r\n";
-    send(fd, namesMsg.c_str(), namesMsg.size(), 0);
+    queueToFd(fd, namesMsg);
     std::string endNamesMsg = "366 " + nick + " " + chanName + " :End of NAMES list\r\n";
-    send(fd, endNamesMsg.c_str(), endNamesMsg.size(), 0);
+    queueToFd(fd, endNamesMsg);
     SuccessReply::sendJoinConfirmed(fd, nick, chanName);
 }

@@ -1,12 +1,15 @@
 #include "ErrorReplies.hpp"
 #include "Messages.hpp"
-#include <sys/socket.h>
+#include "Server.hpp"
 
 namespace ErrorReply
 {
     static void sendReply(int fd, const std::string &msg)
     {
-        send(fd, msg.c_str(), msg.size(), 0);
+        Server *server = Server::instance();
+        if (!server)
+            return;
+        server->queueToFd(fd, msg);
     }
 
     void sendUnknownCommand(int fd, const std::string &user, const std::string &command)

@@ -2,16 +2,26 @@
 #include "Channel.hpp"
 #include "ErrorReplies.hpp"
 #include <cstdlib>
+#include <algorithm>
 
 bool Server::_signal = false;
+Server* Server::_instance = NULL;
 
 Server::Server() : _port(0)
 {
+    _instance = this;
 }
 
 Server::~Server()
 {
     closeFds();
+    if (_instance == this)
+        _instance = NULL;
+}
+
+Server* Server::instance()
+{
+    return _instance;
 }
 
 void Server::serverInit(int port, const std::string &password)
@@ -55,14 +65,18 @@ void Server::run()
                 break;
             throw std::runtime_error(std::string("poll() failed: ") + strerror(errno));
         }
-        for (size_t i = 0; i < _pollFds.size(); i++)
+        for (size_t i = 0; i < _pollFds.size();)
         {
             if (_pollFds[i].revents == 0)
+            {
+                i++;
                 continue;
+            }
             if (_pollFds[i].fd == _socket.getFd() && (_pollFds[i].revents & POLLIN))
             {
                 newClient();
-                break;
+                i++;
+                continue;
             }
             int fd = _pollFds[i].fd;
             if (_pollFds[i].revents & (POLLHUP | POLLERR))
@@ -70,15 +84,82 @@ void Server::run()
                 std::cout << "Client <" << fd << "> disconnected." << std::endl;
                 clearClients(fd);
                 close(fd);
-                break;
+                continue;
             }
             if (_pollFds[i].revents & POLLIN)
             {
                 receiveData(fd);
-                break;
+                if (!getClient(fd))
+                    continue;
             }
+            if (_pollFds[i].revents & POLLOUT)
+            {
+                flushClientOutput(fd);
+                if (!getClient(fd))
+                    continue;
+            }
+            i++;
         }
     }
+}
+
+void Server::enablePollOut(int fd)
+{
+    for (size_t i = 0; i < _pollFds.size(); i++)
+    {
+        if (_pollFds[i].fd == fd)
+        {
+            _pollFds[i].events |= POLLOUT;
+            return;
+        }
+    }
+}
+
+void Server::disablePollOut(int fd)
+{
+    for (size_t i = 0; i < _pollFds.size(); i++)
+    {
+        if (_pollFds[i].fd == fd)
+        {
+            _pollFds[i].events &= ~POLLOUT;
+            return;
+        }
+    }
+}
+
+void Server::queueToFd(int fd, const std::string &msg)
+{
+    Client *client = getClient(fd);
+    if (!client)
+        return;
+    client->addOutBuf(msg);
+    enablePollOut(fd);
+}
+
+void Server::flushClientOutput(int fd)
+{
+    Client *client = getClient(fd);
+    if (!client)
+        return;
+    std::string &pending = client->getOutBuf();
+    while (!pending.empty())
+    {
+        ssize_t sent = send(fd, pending.c_str(), pending.size(), 0);
+        if (sent > 0)
+        {
+            pending.erase(0, static_cast<size_t>(sent));
+            continue;
+        }
+        if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+        {
+            enablePollOut(fd);
+            return;
+        }
+        clearClients(fd);
+        close(fd);
+        return;
+    }
+    disablePollOut(fd);
 }
 
 void Server::newClient()
@@ -123,34 +204,36 @@ void Server::receiveData(int fd)
         return;
     }
     buf[bytes] = '\0';
-    for (size_t i = 0; i < _clients.size(); i++)
+    Client *client = getClient(fd);
+    if (!client)
+        return;
+    client->addBuf(std::string(buf, bytes));
+    while (true)
     {
-        if (_clients[i].getFd() != fd)
+        client = getClient(fd);
+        if (!client)
+            return;
+        std::string &readBuffer = client->getBuf();
+        size_t newlinePos = readBuffer.find('\n');
+        if (newlinePos == std::string::npos)
+            break;
+        std::string rawCommand = readBuffer.substr(0, newlinePos);
+        readBuffer.erase(0, newlinePos + 1);
+        if (!rawCommand.empty() && rawCommand[rawCommand.size() - 1] == '\r')
+            rawCommand.erase(rawCommand.size() - 1);
+        if (rawCommand.empty())
             continue;
-        _clients[i].addBuf(std::string(buf, bytes));
-        std::string &rbuf = _clients[i].getBuf();
-        size_t pos;
-        while ((pos = rbuf.find('\n')) != std::string::npos)
+        try
         {
-            std::string cmd = rbuf.substr(0, pos);
-            rbuf.erase(0, pos + 1);
-            if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
-                cmd.erase(cmd.size() - 1);
-            if (cmd.empty())
-                continue;
-            try
-            {
-                parseCommands(cmd, fd);
-            }
-            catch (const std::exception &e)
-            {
-                (void)e;
-                clearClients(fd);
-                close(fd);
-                return;
-            }
+            parseCommands(rawCommand, fd);
         }
-        break;
+        catch (const std::exception &e)
+        {
+            (void)e;
+            clearClients(fd);
+            close(fd);
+            return;
+        }
     }
 }
 
@@ -184,7 +267,33 @@ void Server::clearClients(int fd)
     {
         if (_clients[i].getFd() == fd)
         {
-            _clients[i].disconnect();
+            Client &client = _clients[i];
+            std::string quitMsg = ":" + client.getNick() + "!" + client.getUser() + "@" + client.getHost() + " QUIT :Leaving\r\n";
+            std::vector<int> toNotify;
+            std::vector<std::string> joinedChans = client.getChans();
+            for (size_t j = 0; j < joinedChans.size(); j++)
+            {
+                Channel *channel = getChannel(joinedChans[j]);
+                if (!channel)
+                    continue;
+                std::vector<int> &clientFds = channel->getClientFds();
+                for (size_t k = 0; k < clientFds.size(); k++)
+                {
+                    if (clientFds[k] != fd)
+                        toNotify.push_back(clientFds[k]);
+                }
+                channel->removeClient(client);
+                channel->removeOp(client);
+                channel->removeInvite(client);
+            }
+            std::vector<int> notified;
+            for (size_t j = 0; j < toNotify.size(); j++)
+            {
+                if (std::find(notified.begin(), notified.end(), toNotify[j]) != notified.end())
+                    continue;
+                queueToFd(toNotify[j], quitMsg);
+                notified.push_back(toNotify[j]);
+            }
             _clients.erase(_clients.begin() + i);
             break;
         }

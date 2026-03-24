@@ -29,6 +29,7 @@ class Server
         Socket                      _socket;
         std::string                 _password;
         static bool                 _signal;
+        static Server*              _instance;
         std::vector<Client>         _clients;
         std::vector<struct pollfd>  _pollFds;
         std::vector<Channel>        _channels;
@@ -40,7 +41,12 @@ class Server
         void    run();
         void    newClient();
         void    receiveData(int fd);
+        void    flushClientOutput(int fd);
+        void    enablePollOut(int fd);
+        void    disablePollOut(int fd);
+        void    queueToFd(int fd, const std::string &msg);
         static void signalHandler(int sigNum);
+        static Server* instance();
         void    closeFds();
         void    clearClients(int fd);
         void    parseCommands(const std::string& cmd, int fd);

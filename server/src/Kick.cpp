@@ -54,7 +54,7 @@ void Server::cmdKick(const std::string &args, int fd)
     std::string kickMsg = " KICK " + chanName + " " + targetNick + " :" + reason;
     channel->broadcast(*sender, kickMsg, _clients);
     channel->removeClient(*target);
-    target->removeChan(channel);
+    target->removeChan(chanName);
     if (channel->isEmpty())
     {
         for (size_t i = 0; i < _channels.size(); i++)

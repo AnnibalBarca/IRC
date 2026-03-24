@@ -39,7 +39,7 @@ void Server::cmdTopic(const std::string &args, int fd)
         else
         {
             std::string rpl = "332 " + nick + " " + chanName + " :" + channel->getTopic() + "\r\n";
-            send(fd, rpl.c_str(), rpl.size(), 0);
+            queueToFd(fd, rpl);
         }
         return;
     }

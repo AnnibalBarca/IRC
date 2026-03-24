@@ -27,11 +27,11 @@ void Server::cmdMode(const std::string &args, int fd)
     if (!(iss >> modeStr))
     {
         std::string rpl324 = "324 " + nick + " " + chanName + " " + channel->getModes() + "\r\n";
-        send(fd, rpl324.c_str(), rpl324.size(), 0);
+        queueToFd(fd, rpl324);
         std::stringstream ss;
         ss << channel->getCreationTime();
         std::string rpl329 = "329 " + nick + " " + chanName + " " + ss.str() + "\r\n";
-        send(fd, rpl329.c_str(), rpl329.size(), 0);
+        queueToFd(fd, rpl329);
         return;
     }
     if (!channel->isClient(*sender))

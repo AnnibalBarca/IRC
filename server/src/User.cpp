@@ -45,6 +45,6 @@ void Server::cmdUser(const std::string &args, int fd)
     {
         sender->setWelcomed(true);
         std::string welcomeMsg = ":irc 001 " + sender->getNick() + " :Welcome to the Internet Relay Network\r\n";
-        send(fd, welcomeMsg.c_str(), welcomeMsg.size(), 0);
+        queueToFd(fd, welcomeMsg);
     }
 }
